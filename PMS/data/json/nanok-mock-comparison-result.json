@@ -1,0 +1,110 @@
+{
+  "comparison": {
+    "reference_file": "PMS/data/Staging-and-Grading-Periodontitis.json",
+    "input_file": "PMS/data/nanok-mock.json",
+    "framework": "2017 World Workshop on the Classification of Periodontal and Peri-Implant Diseases and Conditions",
+    "reference": "Tonetti, Greenwell, Kornman. J Periodontol 2018;89 (Suppl 1): S159-S172"
+  },
+  "input_snapshot": {
+    "trace_id": "195d6e93-e42d-4295-adaf-316dada2a457",
+    "patient": {
+      "age": 47,
+      "teeth_present": 26,
+      "teeth_lost_to_periodontitis": 2
+    },
+    "clinical_findings": {
+      "max_interdental_cal_mm": 6,
+      "max_probing_depth_mm": 7,
+      "max_vertical_bone_loss_mm": 4,
+      "radiographic_bone_loss_percentage": 38,
+      "radiographic_bone_loss_extent": "extending_to_middle_third",
+      "teeth_involved_percentage": 61.5,
+      "furcation_class_II_or_III_present": true,
+      "ridge_defects": "moderate",
+      "max_tooth_mobility_degree": 1
+    },
+    "progression_evidence": {
+      "bone_loss_over_5_years_mm": 1.5,
+      "bone_loss_age_ratio": 0.81
+    },
+    "risk_modifiers": {
+      "smoking": {
+        "current_smoker": false,
+        "cigarettes_per_day": 0
+      },
+      "diabetes": {
+        "diagnosed": true,
+        "hba1c": 6.5
+      }
+    }
+  },
+  "staging_comparison": {
+    "severity": {
+      "interdental_cal": {
+        "value_mm": 6,
+        "matches": [
+          "stage_III",
+          "stage_IV"
+        ]
+      },
+      "radiographic_bone_loss": {
+        "value": "Extending to middle third of root and beyond (38%)",
+        "matches": [
+          "stage_III",
+          "stage_IV"
+        ]
+      },
+      "tooth_loss_due_to_periodontitis": {
+        "value_count": 2,
+        "matches": [
+          "stage_III"
+        ],
+        "excludes": [
+          "stage_IV"
+        ]
+      }
+    },
+    "complexity": {
+      "probing_depth_gte_6mm": true,
+      "vertical_bone_loss_gte_3mm": true,
+      "furcation_class_II_or_III": true,
+      "moderate_ridge_defects": true,
+      "secondary_occlusal_trauma_mobility_gte_2": false,
+      "severe_ridge_defects": false,
+      "fewer_than_20_remaining_teeth": false
+    },
+    "extent": {
+      "teeth_involved_percentage": 61.5,
+      "classification": "Generalized"
+    },
+    "final_stage": "Stage III"
+  },
+  "grading_comparison": {
+    "direct_evidence": {
+      "bone_loss_over_5_years_mm": 1.5,
+      "matched_grade": "Grade B"
+    },
+    "indirect_evidence": {
+      "bone_loss_age_ratio": 0.81,
+      "matched_grade": "Grade B"
+    },
+    "risk_modifiers": {
+      "smoking": {
+        "status": "Non-smoker",
+        "risk_profile_grade": "Grade A"
+      },
+      "diabetes": {
+        "hba1c": 6.5,
+        "risk_profile_grade": "Grade B"
+      }
+    },
+    "final_grade": "Grade B"
+  },
+  "result": {
+    "periodontitis_detected": true,
+    "full_diagnosis": "Generalized Periodontitis, Stage III, Grade B (Moderate rate)",
+    "stage": "Stage III",
+    "grade": "Grade B",
+    "extent": "Generalized"
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "guideline_name": "Periodontitis Staging and Grading (2017 World Workshop)",
+  "version": "2017",
+  "grading": {
+    "purpose": "Indicate rate of progression, responsiveness to standard therapy, and potential systemic impact.",
+    "default_assumption": "B",
+    "preference_rule": "Use direct evidence whenever available.",
+    "grades": [
+      {
+        "grade": "A",
+        "progression_rate": "slow",
+        "primary_criteria": {
+          "direct_evidence_rbl_or_cal": {
+            "loss_over_5_years_mm": 0
+          },
+          "indirect_evidence_percent_bone_loss_over_age": {
+            "max": 0.25
+          },
+          "case_phenotype": "heavy_biofilm_deposits_with_low_levels_of_destruction"
+        },
+        "risk_factor_modifiers": {
+          "smoking": "non_smoker",
+          "diabetes": "normoglycemic_or_no_diabetes_diagnosis"
+        }
+      },
+      {
+        "grade": "B",
+        "progression_rate": "moderate",
+        "primary_criteria": {
+          "direct_evidence_rbl_or_cal": {
+            "loss_over_5_years_mm": {
+              "max_exclusive": 2
+            }
+          },
+          "indirect_evidence_percent_bone_loss_over_age": {
+            "min": 0.25,
+            "max": 1.0
+          },
+          "case_phenotype": "destruction_commensurate_with_biofilm_deposits"
+        },
+        "risk_factor_modifiers": {
+          "smoking": "less_than_10_cigarettes_per_day",
+          "diabetes": "hba1c_less_than_7_percent_in_patients_with_diabetes"
+        }
+      },
+      {
+        "grade": "C",
+        "progression_rate": "rapid",
+        "primary_criteria": {
+          "direct_evidence_rbl_or_cal": {
+            "loss_over_5_years_mm": {
+              "min": 2
+            }
+          },
+          "indirect_evidence_percent_bone_loss_over_age": {
+            "min_exclusive": 1.0
+          },
+          "case_phenotype": "destruction_exceeds_expectations_given_biofilm_deposits_or_patterns_suggest_rapid_progression_or_early_onset"
+        },
+        "risk_factor_modifiers": {
+          "smoking": "10_or_more_cigarettes_per_day",
+          "diabetes": "hba1c_7_percent_or_more_in_patients_with_diabetes"
+        }
+      }
+    ],
+    "source_reference": "Tonetti, Greenwell, Kornman. J Periodontol 2018;89(Suppl 1):S159-S172"
+  }
+}

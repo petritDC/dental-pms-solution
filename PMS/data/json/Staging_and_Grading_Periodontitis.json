@@ -1,0 +1,138 @@
+{
+  "title": "Staging and Grading Periodontitis",
+  "source": {
+    "workshop": "2017 World Workshop on the Classification of Periodontal and Peri-Implant Diseases and Conditions",
+    "organizations": [
+      "American Academy of Periodontology (AAP)",
+      "European Federation of Periodontology (EFP)"
+    ],
+    "reference": "Tonetti, Greenwell, Kornman. J Periodontol 2018;89(Suppl 1):S159-S172"
+  },
+  "periodontitis": {
+    "staging": {
+      "description": "Staging classifies severity and extent of disease based on tissue destruction and complexity of management.",
+      "criteria_priority": [
+        "Clinical Attachment Loss (CAL)",
+        "Radiographic Bone Loss (RBL) if CAL unavailable",
+        "Tooth loss due to periodontitis",
+        "Complexity factors"
+      ],
+      "stages": {
+        "Stage I": {
+          "severity": {
+            "interdental_CAL_mm": "1–2",
+            "radiographic_bone_loss": {
+              "location": "Coronal third",
+              "percentage": "<15%"
+            },
+            "tooth_loss_due_to_periodontitis": "None"
+          },
+          "complexity": {
+            "max_probing_depth_mm": "≤4",
+            "bone_loss_pattern": "Mostly horizontal"
+          }
+        },
+        "Stage II": {
+          "severity": {
+            "interdental_CAL_mm": "3–4",
+            "radiographic_bone_loss": {
+              "location": "Coronal third",
+              "percentage": "15–33%"
+            },
+            "tooth_loss_due_to_periodontitis": "≤4 teeth"
+          },
+          "complexity": {
+            "max_probing_depth_mm": "≤5",
+            "bone_loss_pattern": "Mostly horizontal"
+          }
+        },
+        "Stage III": {
+          "severity": {
+            "interdental_CAL_mm": "≥5",
+            "radiographic_bone_loss": {
+              "location": "Extending to middle third of root and beyond"
+            },
+            "tooth_loss_due_to_periodontitis": "≥5 tcdeeth"
+          },
+          "complexity": {
+            "probing_depth_mm": "≥6",
+            "vertical_bone_loss_mm": "≥3",
+            "furcation_involvement": "Class II or III",
+            "ridge_defects": "Moderate"
+          }
+        },
+        "Stage IV": {
+          "severity": {
+            "interdental_CAL_mm": "≥5",
+            "radiographic_bone_loss": {
+              "location": "Extending to middle third of root and beyond"
+            },
+            "tooth_loss_due_to_periodontitis": "≥5 teeth"
+          },
+          "complexity": {
+            "rehabilitation_required_due_to": [
+              "Masticatory dysfunction",
+              "Secondary occlusal trauma (tooth mobility ≥2)",
+              "Severe ridge defects",
+              "Bite collapse, drifting, flaring",
+              "<20 remaining teeth (10 opposing pairs)"
+            ]
+          }
+        }
+      },
+      "extent_and_distribution_descriptors": [
+        "Localized (<30% of teeth involved)",
+        "Generalized",
+        "Molar/incisor pattern"
+      ]
+    },
+    "grading": {
+      "description": "Grading estimates rate of progression, response to therapy, and systemic impact.",
+      "default_assumption": "Grade B",
+      "grades": {
+        "Grade A": {
+          "progression_rate": "Slow",
+          "primary_criteria": {
+            "direct_evidence": "No loss over 5 years",
+            "indirect_evidence": {
+              "percent_bone_loss_per_age": "<0.25"
+            }
+          },
+          "case_phenotype": "Heavy biofilm deposits with low levels of destruction",
+          "risk_factors": {
+            "smoking": "Non-smoker",
+            "diabetes": "Normoglycemic / no diabetes"
+          }
+        },
+        "Grade B": {
+          "progression_rate": "Moderate",
+          "primary_criteria": {
+            "direct_evidence": "<2 mm over 5 years",
+            "indirect_evidence": {
+              "percent_bone_loss_per_age": "0.25–1.0"
+            }
+          },
+          "case_phenotype": "Destruction commensurate with biofilm deposits",
+          "risk_factors": {
+            "smoking": "<10 cigarettes/day",
+            "diabetes": "HbA1c <7.0%"
+          }
+        },
+        "Grade C": {
+          "progression_rate": "Rapid",
+          "primary_criteria": {
+            "direct_evidence": "≥2 mm over 5 years",
+            "indirect_evidence": {
+              "percent_bone_loss_per_age": ">1.0"
+            }
+          },
+          "case_phenotype": "Destruction exceeds expectations given biofilm deposits; patterns of rapid progression or early onset",
+          "risk_factors": {
+            "smoking": "≥10 cigarettes/day",
+            "diabetes": "HbA1c ≥7.0%"
+          }
+        }
+      }
+    }
+  }
+}

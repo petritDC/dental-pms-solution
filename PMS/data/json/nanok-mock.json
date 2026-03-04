@@ -1,0 +1,106 @@
+{
+  "ok": true,
+  "validated": {
+    "mime": "image/png",
+    "width": 1068,
+    "height": 847,
+    "normalizedBytes": 108199
+  },
+  "nanok": {
+    "traceId": "bb9e5b1f-513a-4b72-8805-61dfe3f3a89b",
+    "ok": true,
+    "error": null,
+    "value": {
+      "tensors": [
+        {
+          "id": 1,
+          "coordinates": [
+            784,
+            458,
+            870,
+            546
+          ],
+          "confidence": 0.2793,
+          "classification": "SECONDARY_LESIONS"
+        },
+        {
+          "id": 2,
+          "coordinates": [
+            507,
+            511,
+            576,
+            592
+          ],
+          "confidence": 0.2729,
+          "classification": "SECONDARY_LESIONS"
+        }
+      ],
+      "periodontitis": {
+        "detected": true,
+        "traceId": "195d6e93-e42d-4295-adaf-316dada2a457",
+        "patient": {
+          "age": 47,
+          "teeth_present": 26,
+          "teeth_lost_to_periodontitis": 2
+        },
+        "clinical_findings": {
+          "clinical_attachment_loss": {
+            "max_interdental_cal_mm": 6,
+            "mean_cal_mm": 3.8,
+            "sites_measured": 156
+          },
+          "probing_depths": {
+            "max_probing_depth_mm": 7,
+            "mean_probing_depth_mm": 3.9,
+            "sites_with_depth_gte_6mm": 12
+          },
+          "radiographic_bone_loss": {
+            "pattern": "mixed_horizontal_and_vertical",
+            "max_vertical_bone_loss_mm": 4,
+            "extent": "extending_to_middle_third",
+            "percentage_estimate": 38
+          },
+          "bleeding_on_probing": {
+            "sites_positive": 58,
+            "bop_percentage": 37.2
+          },
+          "furcation_involvement": [
+            {
+              "tooth": 36,
+              "class": "II",
+              "surface": "buccal"
+            }
+          ],
+          "mobility": [
+            {
+              "tooth": 31,
+              "degree": 1
+            },
+            {
+              "tooth": 41,
+              "degree": 1
+            }
+          ],
+          "ridge_defects": "moderate",
+          "teeth_involved_count": 16,
+          "teeth_involved_percentage": 61.5
+        },
+        "risk_modifiers": {
+          "smoking": {
+            "current_smoker": false,
+            "cigarettes_per_day": 0
+          },
+          "diabetes": {
+            "diagnosed": true,
+            "hba1c": 6.5
+          }
+        },
+        "progression_evidence": {
+          "direct_evidence_available": true,
+          "bone_loss_over_5_years_mm": 1.5,
+          "bone_loss_age_ratio": 0.81
+        }
+      }
+    }
+  }
+}

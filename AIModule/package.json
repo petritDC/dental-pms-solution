@@ -1,0 +1,28 @@
+{
+  "name": "nanok-void-service",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Stateless Fastify + TypeScript API that validates dental X-ray images and forwards them to Nanok AI caries inference.",
+  "license": "UNLICENSED",
+  "main": "dist/server.js",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@fastify/multipart": "^9.0.3",
+    "dotenv": "^16.4.5",
+    "fastify": "^5.2.1",
+    "file-type": "^20.4.1",
+    "sharp": "^0.33.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}
