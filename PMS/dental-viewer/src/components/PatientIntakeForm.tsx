@@ -22,9 +22,17 @@ interface EmergencyContactItem {
   relationship: string;
 }
 
+interface RiskFactors {
+  smokingStatus: "non_smoker" | "former_smoker" | "current_smoker";
+  cigarettesPerDay: number;
+  diabetesDiagnosed: boolean;
+  hba1c: number | null;
+}
+
 interface FormData {
   personalInfo: {
     fullName: string;
+    dateOfBirth: string;
     patientEmail: string;
     insurance: string;
     bloodType: string;
@@ -33,6 +41,7 @@ interface FormData {
   };
   allergies: string[];
   medicalHistory: MedicalHistoryItem[];
+  riskFactors: RiskFactors;
   currentMedications: MedicationItem[];
   emergencyContacts: EmergencyContactItem[];
   consents: {
@@ -45,6 +54,7 @@ export function PatientIntakeForm() {
   const [formData, setFormData] = useState<FormData>({
     personalInfo: {
       fullName: "",
+      dateOfBirth: "",
       patientEmail: "",
       insurance: "",
       bloodType: "",
@@ -53,6 +63,12 @@ export function PatientIntakeForm() {
     },
     allergies: [],
     medicalHistory: [],
+    riskFactors: {
+      smokingStatus: "non_smoker",
+      cigarettesPerDay: 0,
+      diabetesDiagnosed: false,
+      hba1c: null,
+    },
     currentMedications: [],
     emergencyContacts: [],
     consents: {
@@ -72,6 +88,7 @@ export function PatientIntakeForm() {
       data: {
         personalInfo: {
           fullName: "Arben Krasniqi",
+          dateOfBirth: "1979-04-12",
           patientEmail: "arben.krasniqi@example.com",
           insurance: "Sigal Uniqa (Private)",
           bloodType: "A+",
@@ -83,6 +100,12 @@ export function PatientIntakeForm() {
           { condition: "Hypertension", diagnosedAt: "2019-03-15", notes: "Controlled with medication. Checks BP weekly." },
           { condition: "Type 2 Diabetes", diagnosedAt: "2021-07-22", notes: "Managed with diet and Metformin. HbA1c 6.5%." },
         ],
+        riskFactors: {
+          smokingStatus: "non_smoker",
+          cigarettesPerDay: 0,
+          diabetesDiagnosed: true,
+          hba1c: 6.5,
+        },
         currentMedications: [
           { name: "Amlodipine", dosage: "5 mg", frequency: "Once daily (morning)", prescribedBy: "Dr. L. Berisha" },
           { name: "Metformin", dosage: "500 mg", frequency: "Twice daily", prescribedBy: "Dr. F. Hoxha" },
@@ -98,6 +121,7 @@ export function PatientIntakeForm() {
       data: {
         personalInfo: {
           fullName: "Fjolla Gashi",
+          dateOfBirth: "1995-08-23",
           patientEmail: "fjolla.gashi@example.com",
           insurance: "KESCO Health (Public)",
           bloodType: "B+",
@@ -107,9 +131,14 @@ export function PatientIntakeForm() {
         allergies: ["Aspirin", "Chlorhexidine"],
         medicalHistory: [
           { condition: "Asthma", diagnosedAt: "2010-06-10", notes: "Uses inhaler as needed. Mild persistent." },
-          { condition: "Smoking", diagnosedAt: "2012-01-01", notes: "Current smoker, approximately 12 cigarettes/day for 14 years." },
           { condition: "Gingivitis", diagnosedAt: "2023-11-05", notes: "Diagnosed during routine dental checkup. Bleeding on probing." },
         ],
+        riskFactors: {
+          smokingStatus: "current_smoker",
+          cigarettesPerDay: 12,
+          diabetesDiagnosed: false,
+          hba1c: null,
+        },
         currentMedications: [
           { name: "Salbutamol Inhaler", dosage: "100 mcg", frequency: "As needed", prescribedBy: "Dr. A. Hoti" },
         ],
@@ -124,6 +153,7 @@ export function PatientIntakeForm() {
       data: {
         personalInfo: {
           fullName: "Luan Bytyqi",
+          dateOfBirth: "1988-01-30",
           patientEmail: "luan.bytyqi@example.com",
           insurance: "Illyria Insurance (Private)",
           bloodType: "O+",
@@ -132,6 +162,12 @@ export function PatientIntakeForm() {
         },
         allergies: [],
         medicalHistory: [],
+        riskFactors: {
+          smokingStatus: "non_smoker",
+          cigarettesPerDay: 0,
+          diabetesDiagnosed: false,
+          hba1c: null,
+        },
         currentMedications: [],
         emergencyContacts: [
           { name: "Teuta Bytyqi", phone: "+38345551234", relationship: "Wife" },
@@ -144,6 +180,7 @@ export function PatientIntakeForm() {
       data: {
         personalInfo: {
           fullName: "Drita Morina",
+          dateOfBirth: "1970-11-05",
           patientEmail: "drita.morina@example.com",
           insurance: "Sigal Uniqa (Private)",
           bloodType: "AB-",
@@ -153,10 +190,15 @@ export function PatientIntakeForm() {
         allergies: ["Tetracycline", "Latex"],
         medicalHistory: [
           { condition: "Type 2 Diabetes", diagnosedAt: "2015-02-18", notes: "Poorly controlled. HbA1c 8.2%. On insulin therapy." },
-          { condition: "Smoking", diagnosedAt: "2000-01-01", notes: "Heavy smoker, 20+ cigarettes/day for 26 years." },
           { condition: "Atrial Fibrillation", diagnosedAt: "2020-09-30", notes: "On anticoagulant therapy." },
           { condition: "Periodontitis", diagnosedAt: "2022-04-12", notes: "Previously treated. Bone loss noted on radiographs." },
         ],
+        riskFactors: {
+          smokingStatus: "current_smoker",
+          cigarettesPerDay: 20,
+          diabetesDiagnosed: true,
+          hba1c: 8.2,
+        },
         currentMedications: [
           { name: "Insulin Glargine", dosage: "30 units", frequency: "Once daily (evening)", prescribedBy: "Dr. F. Hoxha" },
           { name: "Metformin", dosage: "1000 mg", frequency: "Twice daily", prescribedBy: "Dr. F. Hoxha" },
@@ -174,6 +216,7 @@ export function PatientIntakeForm() {
       data: {
         personalInfo: {
           fullName: "Besnik Haliti",
+          dateOfBirth: "1962-06-18",
           patientEmail: "besnik.haliti@example.com",
           insurance: "None (Self-pay)",
           bloodType: "A-",
@@ -185,6 +228,12 @@ export function PatientIntakeForm() {
           { condition: "Osteoporosis", diagnosedAt: "2018-11-20", notes: "On bisphosphonate therapy. Annual dental clearance required." },
           { condition: "Gastric Reflux (GERD)", diagnosedAt: "2016-05-03", notes: "Managed with PPI. Tooth erosion noted." },
         ],
+        riskFactors: {
+          smokingStatus: "non_smoker",
+          cigarettesPerDay: 0,
+          diabetesDiagnosed: false,
+          hba1c: null,
+        },
         currentMedications: [
           { name: "Alendronate", dosage: "70 mg", frequency: "Once weekly", prescribedBy: "Dr. M. Salihu" },
           { name: "Omeprazole", dosage: "20 mg", frequency: "Once daily (morning)", prescribedBy: "Dr. E. Kelmendi" },
@@ -192,6 +241,143 @@ export function PatientIntakeForm() {
         ],
         emergencyContacts: [
           { name: "Mimoza Haliti", phone: "+38344333444", relationship: "Wife" },
+        ],
+        consents: { privacyPolicyAccepted: true, treatmentConsent: true },
+      },
+    },
+    {
+      label: "Valon Rexhepi — Young, Healthy, No Risk Factors",
+      data: {
+        personalInfo: {
+          fullName: "Valon Rexhepi",
+          dateOfBirth: "1998-03-14",
+          patientEmail: "valon.rexhepi@example.com",
+          insurance: "Dukagjini Insurance (Private)",
+          bloodType: "O+",
+          patientNationalId: "1298012345678",
+          medicalRecordNumber: "MRN-2026-006103",
+        },
+        allergies: [],
+        medicalHistory: [
+          { condition: "Wisdom teeth extraction", diagnosedAt: "2022-08-15", notes: "All four impacted wisdom teeth removed. Uneventful recovery." },
+        ],
+        riskFactors: {
+          smokingStatus: "non_smoker",
+          cigarettesPerDay: 0,
+          diabetesDiagnosed: false,
+          hba1c: null,
+        },
+        currentMedications: [],
+        emergencyContacts: [
+          { name: "Liridona Rexhepi", phone: "+38344222333", relationship: "Mother" },
+        ],
+        consents: { privacyPolicyAccepted: true, treatmentConsent: true },
+      },
+    },
+    {
+      label: "Shkurte Berisha — Moderate Smoker, Pre-diabetic",
+      data: {
+        personalInfo: {
+          fullName: "Shkurte Berisha",
+          dateOfBirth: "1982-12-01",
+          patientEmail: "shkurte.berisha@example.com",
+          insurance: "KESCO Health (Public)",
+          bloodType: "B-",
+          patientNationalId: "1182345678901",
+          medicalRecordNumber: "MRN-2026-007245",
+        },
+        allergies: ["Codeine"],
+        medicalHistory: [
+          { condition: "Pre-diabetes", diagnosedAt: "2023-06-20", notes: "HbA1c 6.8%. Dietary management advised. Monitoring every 3 months." },
+          { condition: "Chronic Periodontitis", diagnosedAt: "2024-01-10", notes: "Stage II diagnosed. Scaling and root planing performed." },
+          { condition: "Iron Deficiency Anemia", diagnosedAt: "2021-03-05", notes: "On iron supplements. Fatigue and pallor improved." },
+        ],
+        riskFactors: {
+          smokingStatus: "current_smoker",
+          cigarettesPerDay: 8,
+          diabetesDiagnosed: true,
+          hba1c: 6.8,
+        },
+        currentMedications: [
+          { name: "Ferrous Sulfate", dosage: "325 mg", frequency: "Once daily", prescribedBy: "Dr. V. Maliqi" },
+          { name: "Vitamin C", dosage: "500 mg", frequency: "Once daily", prescribedBy: "Dr. V. Maliqi" },
+        ],
+        emergencyContacts: [
+          { name: "Faton Berisha", phone: "+38344555666", relationship: "Husband" },
+        ],
+        consents: { privacyPolicyAccepted: true, treatmentConsent: true },
+      },
+    },
+    {
+      label: "Agron Demolli — Heavy Smoker, Uncontrolled Diabetes",
+      data: {
+        personalInfo: {
+          fullName: "Agron Demolli",
+          dateOfBirth: "1965-07-22",
+          patientEmail: "agron.demolli@example.com",
+          insurance: "None (Self-pay)",
+          bloodType: "A+",
+          patientNationalId: "1165432109876",
+          medicalRecordNumber: "MRN-2026-008377",
+        },
+        allergies: ["Erythromycin", "Sulfonamides", "Latex"],
+        medicalHistory: [
+          { condition: "Type 2 Diabetes", diagnosedAt: "2010-05-12", notes: "Poorly controlled. HbA1c 8.5%. Non-compliant with diet." },
+          { condition: "Coronary Artery Disease", diagnosedAt: "2019-02-28", notes: "Stent placed in 2019. On dual antiplatelet therapy." },
+          { condition: "Advanced Periodontitis", diagnosedAt: "2023-09-15", notes: "Stage III-IV. Multiple teeth with mobility. Bone loss >50%." },
+          { condition: "Chronic Obstructive Pulmonary Disease", diagnosedAt: "2020-11-01", notes: "Related to long-term smoking. Uses bronchodilator." },
+        ],
+        riskFactors: {
+          smokingStatus: "current_smoker",
+          cigarettesPerDay: 15,
+          diabetesDiagnosed: true,
+          hba1c: 8.5,
+        },
+        currentMedications: [
+          { name: "Metformin", dosage: "1000 mg", frequency: "Twice daily", prescribedBy: "Dr. F. Hoxha" },
+          { name: "Glimepiride", dosage: "4 mg", frequency: "Once daily (morning)", prescribedBy: "Dr. F. Hoxha" },
+          { name: "Aspirin", dosage: "100 mg", frequency: "Once daily", prescribedBy: "Dr. B. Kastrati" },
+          { name: "Clopidogrel", dosage: "75 mg", frequency: "Once daily", prescribedBy: "Dr. B. Kastrati" },
+          { name: "Tiotropium Inhaler", dosage: "18 mcg", frequency: "Once daily", prescribedBy: "Dr. A. Hoti" },
+        ],
+        emergencyContacts: [
+          { name: "Vlora Demolli", phone: "+38344777888", relationship: "Wife" },
+          { name: "Granit Demolli", phone: "+38344999000", relationship: "Son" },
+        ],
+        consents: { privacyPolicyAccepted: true, treatmentConsent: true },
+      },
+    },
+    {
+      label: "Zana Kelmendi — Former Smoker, Well-controlled Diabetes",
+      data: {
+        personalInfo: {
+          fullName: "Zana Kelmendi",
+          dateOfBirth: "1975-09-08",
+          patientEmail: "zana.kelmendi@example.com",
+          insurance: "Sigal Uniqa (Private)",
+          bloodType: "AB+",
+          patientNationalId: "1175678901234",
+          medicalRecordNumber: "MRN-2026-009512",
+        },
+        allergies: ["Metronidazole"],
+        medicalHistory: [
+          { condition: "Type 2 Diabetes", diagnosedAt: "2018-04-10", notes: "Well-controlled with medication. HbA1c 6.2%. Regular follow-ups." },
+          { condition: "Former Smoker", diagnosedAt: "2020-01-01", notes: "Quit smoking in 2020. Previously 10 cigarettes/day for 15 years." },
+          { condition: "Mild Periodontitis", diagnosedAt: "2024-06-20", notes: "Stage I-II. Improved after smoking cessation. Regular maintenance." },
+          { condition: "Hypothyroidism", diagnosedAt: "2016-08-15", notes: "Stable on levothyroxine. TSH within normal range." },
+        ],
+        riskFactors: {
+          smokingStatus: "former_smoker",
+          cigarettesPerDay: 0,
+          diabetesDiagnosed: true,
+          hba1c: 6.2,
+        },
+        currentMedications: [
+          { name: "Metformin", dosage: "500 mg", frequency: "Twice daily", prescribedBy: "Dr. F. Hoxha" },
+          { name: "Levothyroxine", dosage: "75 mcg", frequency: "Once daily (morning, empty stomach)", prescribedBy: "Dr. N. Sadiku" },
+        ],
+        emergencyContacts: [
+          { name: "Blerim Kelmendi", phone: "+38344444555", relationship: "Husband" },
         ],
         consents: { privacyPolicyAccepted: true, treatmentConsent: true },
       },
@@ -291,12 +477,13 @@ export function PatientIntakeForm() {
   const generateJson = async () => {
     const output = {
       submittedAt: new Date().toISOString(),
-      formVersion: "patient_intake_v1",
+      formVersion: "patient_intake_v2",
       personalInfo: formData.personalInfo,
       allergies: formData.allergies,
       medicalHistory: formData.medicalHistory.filter(
         (item) => item.condition && item.diagnosedAt
       ),
+      riskFactors: formData.riskFactors,
       currentMedications: formData.currentMedications.filter((item) => item.name),
       emergencyContacts: formData.emergencyContacts.filter((item) => item.name && item.phone),
       consents: formData.consents,
@@ -304,17 +491,29 @@ export function PatientIntakeForm() {
     setGeneratedJson(output);
 
     try {
-      const response = await fetch("/api/final-data");
-      if (response.ok) {
-        const finalData = await response.json();
-        const merged = {
-          patientIntake: output,
-          ...finalData,
-        };
-        setFinalJson(merged);
-      } else {
-        setFinalJson(null);
+      // 1. Fetch nanok mock data
+      const nanokResponse = await fetch("/api/final-data");
+      const nanokData = nanokResponse.ok ? await nanokResponse.json() : null;
+
+      // 2. Run periodontitis comparison
+      const compareResponse = await fetch("/api/compare-periodontitis", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ patientIntake: output, nanokData }),
+      });
+      const comparisonResult = compareResponse.ok ? await compareResponse.json() : null;
+
+      // 3. Merge everything into final JSON
+      const merged: Record<string, unknown> = {
+        patientIntake: output,
+      };
+      if (nanokData) {
+        merged.nanok = nanokData.nanok ?? nanokData;
       }
+      if (comparisonResult?.result) {
+        merged.result = comparisonResult.result;
+      }
+      setFinalJson(merged);
     } catch (error) {
       console.error("Error fetching final data:", error);
       setFinalJson(null);
@@ -366,6 +565,22 @@ export function PatientIntakeForm() {
                 }
                 className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-white/10 dark:bg-black"
                 placeholder="Arben Krasniqi"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                Date of Birth *
+              </label>
+              <input
+                type="date"
+                value={formData.personalInfo.dateOfBirth}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    personalInfo: { ...formData.personalInfo, dateOfBirth: e.target.value },
+                  })
+                }
+                className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-white/10 dark:bg-black"
               />
             </div>
             <div>
@@ -569,6 +784,101 @@ export function PatientIntakeForm() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* Risk Factors (Periodontitis Grading) */}
+        <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/5">
+          <h2 className="mb-1 text-base font-semibold">Risk Factors</h2>
+          <p className="mb-4 text-xs text-zinc-500 dark:text-zinc-400">
+            Used for periodontitis grading (AAP/EFP 2017 classification)
+          </p>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                Smoking Status
+              </label>
+              <select
+                value={formData.riskFactors.smokingStatus}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    riskFactors: {
+                      ...formData.riskFactors,
+                      smokingStatus: e.target.value as RiskFactors["smokingStatus"],
+                      cigarettesPerDay: e.target.value !== "current_smoker" ? 0 : formData.riskFactors.cigarettesPerDay,
+                    },
+                  })
+                }
+                className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-white/10 dark:bg-black"
+              >
+                <option value="non_smoker">Non-smoker</option>
+                <option value="former_smoker">Former smoker</option>
+                <option value="current_smoker">Current smoker</option>
+              </select>
+            </div>
+            {formData.riskFactors.smokingStatus === "current_smoker" && (
+              <div>
+                <label className="mb-1 block text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                  Cigarettes / Day
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  value={formData.riskFactors.cigarettesPerDay}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      riskFactors: { ...formData.riskFactors, cigarettesPerDay: parseInt(e.target.value) || 0 },
+                    })
+                  }
+                  className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-white/10 dark:bg-black"
+                  placeholder="0"
+                />
+              </div>
+            )}
+            <div className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                checked={formData.riskFactors.diabetesDiagnosed}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    riskFactors: {
+                      ...formData.riskFactors,
+                      diabetesDiagnosed: e.target.checked,
+                      hba1c: e.target.checked ? formData.riskFactors.hba1c : null,
+                    },
+                  })
+                }
+                className="h-4 w-4 rounded border-zinc-300 text-zinc-900 dark:border-white/20"
+              />
+              <label className="text-sm text-zinc-700 dark:text-zinc-300">
+                Diabetes Diagnosed
+              </label>
+            </div>
+            {formData.riskFactors.diabetesDiagnosed && (
+              <div>
+                <label className="mb-1 block text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                  HbA1c (%)
+                </label>
+                <input
+                  type="number"
+                  step="0.1"
+                  min={0}
+                  max={20}
+                  value={formData.riskFactors.hba1c ?? ""}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      riskFactors: { ...formData.riskFactors, hba1c: e.target.value ? parseFloat(e.target.value) : null },
+                    })
+                  }
+                  className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-white/10 dark:bg-black"
+                  placeholder="6.5"
+                />
+              </div>
+            )}
           </div>
         </div>
 

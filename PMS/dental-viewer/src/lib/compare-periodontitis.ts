@@ -3,9 +3,16 @@
 export interface PatientIntake {
   personalInfo?: {
     fullName?: string;
+    dateOfBirth?: string;
     medicalRecordNumber?: string;
   };
   medicalHistory?: { condition: string; diagnosedAt: string; notes?: string }[];
+  riskFactors?: {
+    smokingStatus?: string;
+    cigarettesPerDay?: number;
+    diabetesDiagnosed?: boolean;
+    hba1c?: number | null;
+  };
   currentMedications?: { name: string; dosage?: string; frequency?: string; prescribedBy?: string }[];
   allergies?: string[];
 }
@@ -140,6 +147,21 @@ function collectPatientTexts(
   }
   for (const a of intake.allergies ?? []) {
     texts.push({ text: a, source: `Allergy: ${a}` });
+  }
+
+  // From patient intake risk factors (structured fields)
+  const rf = intake.riskFactors;
+  if (rf) {
+    if (rf.smokingStatus === "current_smoker") {
+      texts.push({ text: "Current smoker", source: `Intake: current smoker (${rf.cigarettesPerDay ?? 0} cigarettes/day)` });
+    } else if (rf.smokingStatus === "former_smoker") {
+      texts.push({ text: "Former smoker", source: "Intake: former smoker" });
+    } else if (rf.smokingStatus === "non_smoker") {
+      texts.push({ text: "Non-smoker", source: "Intake: non-smoker" });
+    }
+    if (rf.diabetesDiagnosed) {
+      texts.push({ text: "diabetes", source: `Intake: diabetes diagnosed (HbA1c ${rf.hba1c ?? "N/A"}%)` });
+    }
   }
 
   // From nanok clinical findings
@@ -352,7 +374,8 @@ function determineStage(
 
 function determineGrade(
   nanok: NanokPeriodontitis,
-  gradingData: Record<string, unknown>
+  gradingData: Record<string, unknown>,
+  intake?: PatientIntake
 ): { grade: string; reasoning: string[] } {
   const grades = (gradingData.grades ?? {}) as Record<string, Record<string, unknown>>;
   const defaultGrade = String(gradingData.default_assumption ?? "Grade B");
@@ -361,10 +384,24 @@ function determineGrade(
   let bestGrade = defaultGrade;
   reasoning.push(`Default assumption: ${defaultGrade}`);
 
-  const smoking = nanok.risk_modifiers?.smoking;
-  const diabetes = nanok.risk_modifiers?.diabetes;
+  // Use nanok risk modifiers, fall back to intake risk factors
+  const rf = intake?.riskFactors;
+  const smoking = nanok.risk_modifiers?.smoking ?? (rf ? {
+    current_smoker: rf.smokingStatus === "current_smoker",
+    cigarettes_per_day: rf.cigarettesPerDay ?? 0,
+  } : undefined);
+  const diabetes = nanok.risk_modifiers?.diabetes ?? (rf ? {
+    diagnosed: rf.diabetesDiagnosed ?? false,
+    hba1c: rf.hba1c ?? undefined,
+  } : undefined);
   const progression = nanok.progression_evidence;
-  const patientAge = nanok.patient?.age;
+  // Use nanok age, fall back to calculating from intake DOB
+  let patientAge = nanok.patient?.age;
+  if (patientAge == null && intake?.personalInfo?.dateOfBirth) {
+    const dob = new Date(intake.personalInfo.dateOfBirth);
+    const now = new Date();
+    patientAge = Math.floor((now.getTime() - dob.getTime()) / (365.25 * 24 * 60 * 60 * 1000));
+  }
   const boneLossPct = nanok.clinical_findings?.radiographic_bone_loss?.percentage_estimate;
 
   for (const gradeName of gradeNames) {
@@ -517,7 +554,7 @@ export function compareAgainstReference(
   const gradingData = (periodontitis.grading ?? {}) as Record<string, unknown>;
 
   const staging = determineStage(nanok, stagingData);
-  const grading = determineGrade(nanok, gradingData);
+  const grading = determineGrade(nanok, gradingData, intake);
   const extent = determineExtent(nanok, stagingData);
 
   const hasClinicalData = nanok.clinical_findings != null;
