@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 // ─── Types for Final JSON patient record ─────────────────────────────────────
 
@@ -17,6 +17,12 @@ interface PatientIntake {
   };
   allergies?: string[];
   medicalHistory?: { condition: string; diagnosedAt: string; notes?: string }[];
+  riskFactors?: {
+    smokingStatus?: string;
+    cigarettesPerDay?: number;
+    diabetesDiagnosed?: boolean;
+    hba1c?: number | null;
+  };
   currentMedications?: { name: string; dosage?: string; frequency?: string; prescribedBy?: string }[];
   emergencyContacts?: { name: string; phone: string; relationship?: string }[];
   consents?: {
@@ -195,7 +201,7 @@ function FinalJsonViewer({ data }: { data: object }) {
     ? BLOOD_COLORS[info.bloodType] ?? "bg-zinc-100 text-zinc-700 ring-zinc-200 dark:bg-white/6 dark:text-zinc-300 dark:ring-white/10"
     : null;
 
-  const extraEntries = Object.entries(d).filter(([k]) => k !== "patientIntake");
+  const extraEntries = Object.entries(d).filter(([k]) => k !== "patientIntake" && k !== "result");
 
   return (
     <div className="flex flex-col gap-6">
@@ -275,7 +281,7 @@ function FinalJsonViewer({ data }: { data: object }) {
           title="Medical History"
           count={intake.medicalHistory.length}
         >
-          <div className="flex flex-col gap-2">
+          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
             {intake.medicalHistory.map((item, i) => (
               <div key={i} className="rounded-xl border border-zinc-100 bg-white px-4 py-3 dark:border-white/6 dark:bg-white/2">
                 <div className="flex items-start justify-between gap-3">
@@ -331,19 +337,25 @@ function FinalJsonViewer({ data }: { data: object }) {
           title="Emergency Contacts"
           count={intake.emergencyContacts.length}
         >
-          <div className="flex flex-col gap-2">
+          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
             {intake.emergencyContacts.map((c, i) => (
-              <div key={i} className="flex items-center justify-between gap-4 rounded-xl border border-zinc-100 bg-white px-4 py-3 dark:border-white/6 dark:bg-white/2">
-                <div>
-                  <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{c.name}</p>
-                  {c.relationship && <p className="text-xs text-zinc-400 dark:text-zinc-500">{c.relationship}</p>}
+              <div key={i} className="rounded-xl border border-zinc-100 bg-white px-4 py-3 dark:border-white/6 dark:bg-white/2">
+                <div className="flex items-start justify-between gap-3">
+                  <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{c.name}</span>
+                  {c.relationship && (
+                    <span className="shrink-0 rounded-md bg-zinc-100 px-2 py-0.5 text-[10px] font-medium text-zinc-500 dark:bg-white/6 dark:text-zinc-400">
+                      {c.relationship}
+                    </span>
+                  )}
                 </div>
-                <span className="flex items-center gap-1.5 rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-600 dark:border-white/10 dark:text-zinc-300">
-                  <svg width="11" height="11" viewBox="0 0 16 16" fill="none">
-                    <path d="M3 3.5c0-.828.672-1.5 1.5-1.5.414 0 .75.336.75.75v2.5a.75.75 0 01-.22.53l-1 1a9.5 9.5 0 004.69 4.69l1-1a.75.75 0 01.53-.22h2.5c.414 0 .75.336.75.75v.5c0 .828-.672 1.5-1.5 1.5A11.5 11.5 0 013 3.5z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
-                  </svg>
-                  {c.phone}
-                </span>
+                {c.phone && (
+                  <p className="mt-1.5 flex items-center gap-1.5 text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+                    <svg width="11" height="11" viewBox="0 0 16 16" fill="none" className="shrink-0">
+                      <path d="M3 3.5c0-.828.672-1.5 1.5-1.5.414 0 .75.336.75.75v2.5a.75.75 0 01-.22.53l-1 1a9.5 9.5 0 004.69 4.69l1-1a.75.75 0 01.53-.22h2.5c.414 0 .75.336.75.75v.5c0 .828-.672 1.5-1.5 1.5A11.5 11.5 0 013 3.5z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
+                    </svg>
+                    {c.phone}
+                  </p>
+                )}
               </div>
             ))}
           </div>
@@ -381,43 +393,7 @@ function FinalJsonViewer({ data }: { data: object }) {
   );
 }
 
-// ─── Comparison loading animation ────────────────────────────────────────────
-
-function ComparisonLoader() {
-  return (
-    <div className="flex flex-col items-center justify-center py-20 text-center">
-      <div className="relative mb-6">
-        <div className="h-14 w-14 animate-spin rounded-full border-[3px] border-zinc-200 border-t-zinc-900 dark:border-white/10 dark:border-t-white" />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <svg width="18" height="18" viewBox="0 0 16 16" fill="none" className="text-zinc-400 dark:text-zinc-500">
-            <path d="M4 8h8M6 5l-3 3 3 3M10 5l3 3-3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </div>
-      </div>
-      <p className="text-sm font-medium text-zinc-700 dark:text-zinc-200">Comparing with periodontitis criteria...</p>
-      <p className="mt-1.5 text-xs text-zinc-400 dark:text-zinc-500">
-        Cross-referencing patient data against staging & grading classification
-      </p>
-    </div>
-  );
-}
-
-// ─── Comparison results viewer ───────────────────────────────────────────────
-
-interface FieldMatch {
-  referenceKey: string;
-  referenceValue: string;
-  patientField: string;
-  patientValue: string;
-  section: string;
-}
-
-interface SectionComparison {
-  sectionName: string;
-  referenceData: Record<string, unknown>;
-  matches: FieldMatch[];
-  unmatchedCriteria: { key: string; value: string }[];
-}
+// ─── Diagnosis viewer (Comparison tab) ──────────────────────────────────────
 
 interface DiagnosisResult {
   periodontitis_detected: boolean;
@@ -429,177 +405,41 @@ interface DiagnosisResult {
   grading_reasoning: string[];
 }
 
-interface ComparisonData {
-  comparedAt: string;
-  patient: { fullName: string; medicalRecordNumber: string };
-  referenceSource: { title: string; workshop: string; reference: string };
-  sections: SectionComparison[];
-  patientSummary: {
-    conditions: string[];
-    medications: string[];
-    allergies: string[];
-  };
-  overallMatchCount: number;
-  overallUnmatchedCount: number;
-  result: DiagnosisResult;
-  savedTo?: string;
-}
+function DiagnosisViewer({ data }: { data: object }) {
+  const d = data as Record<string, unknown>;
+  const intake = (d.patientIntake ?? {}) as PatientIntake;
+  const result = d.result as DiagnosisResult | undefined;
 
-function MatchBadge({ count }: { count: number }) {
-  return (
-    <span
-      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-        count > 0
-          ? "bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
-          : "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
-      }`}
-    >
-      <span className={`h-1.5 w-1.5 rounded-full ${count > 0 ? "bg-amber-400" : "bg-emerald-400"}`} />
-      {count > 0 ? `${count} match${count > 1 ? "es" : ""}` : "No matches"}
-    </span>
-  );
-}
-
-function SectionCard({ section }: { section: SectionComparison }) {
-  const [expanded, setExpanded] = useState(false);
-
-  return (
-    <div className="rounded-xl border border-zinc-100 bg-white dark:border-white/6 dark:bg-white/2">
-      <button
-        onClick={() => setExpanded(!expanded)}
-        className="flex w-full items-center justify-between px-4 py-3.5 text-left"
-      >
-        <div className="flex items-center gap-2.5">
-          <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{section.sectionName}</span>
-          <MatchBadge count={section.matches.length} />
+  if (!result) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 text-center">
+        <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-zinc-100 text-zinc-400 dark:bg-white/6">
+          <svg width="20" height="20" viewBox="0 0 16 16" fill="none">
+            <path d="M4 8h8M6 5l-3 3 3 3M10 5l3 3-3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
         </div>
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 16 16"
-          fill="none"
-          className={`text-zinc-400 transition-transform ${expanded ? "rotate-180" : ""}`}
-        >
-          <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </button>
-
-      {expanded && (
-        <div className="border-t border-zinc-100 px-4 py-3 dark:border-white/6">
-          {section.matches.length > 0 && (
-            <div className="mb-3">
-              <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400">
-                Matches Found
-              </p>
-              <div className="flex flex-col gap-2">
-                {section.matches.map((m, i) => (
-                  <div key={i} className="rounded-lg border border-amber-100 bg-amber-50/50 p-3 dark:border-amber-800/30 dark:bg-amber-950/20">
-                    <div className="flex items-start justify-between gap-2">
-                      <p className="text-xs font-medium text-zinc-900 dark:text-zinc-100">
-                        {m.patientValue}
-                      </p>
-                      <span className="shrink-0 rounded-md bg-amber-100 px-1.5 py-0.5 text-[9px] font-medium text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
-                        match
-                      </span>
-                    </div>
-                    <p className="mt-1 text-[11px] text-zinc-500 dark:text-zinc-400">{m.patientField}</p>
-                    <div className="mt-2 rounded bg-white/80 px-2 py-1.5 dark:bg-white/4">
-                      <p className="text-[10px] text-zinc-400 dark:text-zinc-500">
-                        <span className="font-medium">Ref:</span> {m.referenceKey}
-                      </p>
-                      <p className="text-[11px] text-zinc-600 dark:text-zinc-300">{m.referenceValue}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {section.unmatchedCriteria.length > 0 && (
-            <div>
-              <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
-                Unmatched Reference Criteria ({section.unmatchedCriteria.length})
-              </p>
-              <div className="max-h-48 overflow-y-auto rounded-lg border border-zinc-100 dark:border-white/6">
-                {section.unmatchedCriteria.map((u, i) => (
-                  <div
-                    key={i}
-                    className="flex gap-3 border-b border-zinc-50 px-3 py-2 last:border-0 dark:border-white/4"
-                  >
-                    <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-zinc-300 dark:bg-zinc-600" />
-                    <div className="min-w-0">
-                      <p className="truncate text-[10px] font-medium text-zinc-400 dark:text-zinc-500">{u.key}</p>
-                      <p className="text-[11px] text-zinc-600 dark:text-zinc-300">{u.value}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function ComparisonViewer({ data }: { data: ComparisonData }) {
-  const comparedAt = new Date(data.comparedAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+        <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">No diagnosis data available</p>
+        <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">Generate final JSON to run periodontitis comparison</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6">
 
-      {/* ── Header card ── */}
-      <div className="rounded-2xl border border-zinc-200 bg-linear-to-br from-indigo-50/50 to-white p-5 dark:border-white/8 dark:from-indigo-950/20 dark:to-white/1">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h3 className="text-base font-semibold text-zinc-900 dark:text-white">
-              Periodontitis Reference Comparison
-            </h3>
-            <p className="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
-              {data.patient.fullName} &middot; {data.patient.medicalRecordNumber}
-            </p>
-          </div>
-          <div className="text-right">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Compared</p>
-            <p className="mt-0.5 text-xs font-medium text-zinc-600 dark:text-zinc-300">{comparedAt}</p>
-          </div>
-        </div>
-        <div className="mt-3 rounded-lg border border-zinc-200/60 bg-white/60 px-3 py-2 dark:border-white/6 dark:bg-white/4">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Reference</p>
-          <p className="mt-0.5 text-xs text-zinc-700 dark:text-zinc-200">{data.referenceSource.title}</p>
-          <p className="text-[10px] text-zinc-400 dark:text-zinc-500">{data.referenceSource.reference}</p>
-        </div>
-
-        {/* ── Summary stats ── */}
-        <div className="mt-3 flex gap-3">
-          <div className="flex-1 rounded-lg border border-amber-200/60 bg-amber-50/50 px-3 py-2 dark:border-amber-800/30 dark:bg-amber-950/20">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400">Matches</p>
-            <p className="mt-0.5 text-lg font-bold text-amber-700 dark:text-amber-300">{data.overallMatchCount}</p>
-          </div>
-          <div className="flex-1 rounded-lg border border-zinc-200/60 bg-zinc-50/50 px-3 py-2 dark:border-white/6 dark:bg-white/4">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Unmatched</p>
-            <p className="mt-0.5 text-lg font-bold text-zinc-600 dark:text-zinc-300">{data.overallUnmatchedCount}</p>
-          </div>
-          <div className="flex-1 rounded-lg border border-zinc-200/60 bg-zinc-50/50 px-3 py-2 dark:border-white/6 dark:bg-white/4">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Sections</p>
-            <p className="mt-0.5 text-lg font-bold text-zinc-600 dark:text-zinc-300">{data.sections.length}</p>
-          </div>
-        </div>
-      </div>
-
       {/* ── Diagnosis Result ── */}
       <div className={`rounded-2xl border p-5 ${
-        data.result.periodontitis_detected
+        result.periodontitis_detected
           ? "border-red-200 bg-linear-to-br from-red-50/60 to-white dark:border-red-800/30 dark:from-red-950/20 dark:to-white/1"
           : "border-emerald-200 bg-linear-to-br from-emerald-50/60 to-white dark:border-emerald-800/30 dark:from-emerald-950/20 dark:to-white/1"
       }`}>
         <div className="mb-3 flex items-center gap-2.5">
           <span className={`flex h-7 w-7 items-center justify-center rounded-lg ${
-            data.result.periodontitis_detected
+            result.periodontitis_detected
               ? "bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400"
               : "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400"
           }`}>
-            {data.result.periodontitis_detected ? (
+            {result.periodontitis_detected ? (
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 2l6 10H2L8 2z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" /><path d="M8 7v2M8 11h.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
             ) : (
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 8l3 3 7-7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -611,29 +451,29 @@ function ComparisonViewer({ data }: { data: ComparisonData }) {
         </div>
 
         <p className="text-lg font-semibold text-zinc-900 dark:text-white">
-          {data.result.full_diagnosis}
+          {result.full_diagnosis}
         </p>
 
-        {data.result.periodontitis_detected && (
+        {result.periodontitis_detected && (
           <div className="mt-3 flex flex-wrap gap-2">
             <span className="rounded-full border border-red-200 bg-white px-3 py-1 text-xs font-semibold text-red-700 dark:border-red-800/40 dark:bg-white/4 dark:text-red-300">
-              {data.result.stage}
+              {result.stage}
             </span>
             <span className="rounded-full border border-amber-200 bg-white px-3 py-1 text-xs font-semibold text-amber-700 dark:border-amber-800/40 dark:bg-white/4 dark:text-amber-300">
-              {data.result.grade}
+              {result.grade}
             </span>
             <span className="rounded-full border border-zinc-200 bg-white px-3 py-1 text-xs font-semibold text-zinc-700 dark:border-white/10 dark:bg-white/4 dark:text-zinc-300">
-              {data.result.extent}
+              {result.extent}
             </span>
           </div>
         )}
 
         {/* Staging reasoning */}
-        {data.result.staging_reasoning.length > 0 && (
+        {result.staging_reasoning.length > 0 && (
           <div className="mt-4">
             <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Staging Reasoning</p>
             <ul className="flex flex-col gap-1">
-              {data.result.staging_reasoning.map((r, i) => (
+              {result.staging_reasoning.map((r, i) => (
                 <li key={i} className="flex gap-2 text-xs leading-relaxed text-zinc-600 dark:text-zinc-300">
                   <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-zinc-300 dark:bg-zinc-600" />
                   {r}
@@ -644,11 +484,11 @@ function ComparisonViewer({ data }: { data: ComparisonData }) {
         )}
 
         {/* Grading reasoning */}
-        {data.result.grading_reasoning.length > 0 && (
+        {result.grading_reasoning.length > 0 && (
           <div className="mt-3">
             <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Grading Reasoning</p>
             <ul className="flex flex-col gap-1">
-              {data.result.grading_reasoning.map((r, i) => (
+              {result.grading_reasoning.map((r, i) => (
                 <li key={i} className="flex gap-2 text-xs leading-relaxed text-zinc-600 dark:text-zinc-300">
                   <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-zinc-300 dark:bg-zinc-600" />
                   {r}
@@ -665,35 +505,35 @@ function ComparisonViewer({ data }: { data: ComparisonData }) {
         title="Patient Data Used"
       >
         <div className="rounded-xl border border-zinc-100 bg-white p-4 dark:border-white/6 dark:bg-white/2">
-          {data.patientSummary.conditions.length > 0 && (
+          {intake.medicalHistory && intake.medicalHistory.length > 0 && (
             <div className="mb-3">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Conditions</p>
               <div className="mt-1.5 flex flex-wrap gap-1.5">
-                {data.patientSummary.conditions.map((c, i) => (
+                {intake.medicalHistory.map((c, i) => (
                   <span key={i} className="rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-0.5 text-[11px] font-medium text-zinc-700 dark:border-white/10 dark:bg-white/4 dark:text-zinc-300">
-                    {c}
+                    {c.condition}
                   </span>
                 ))}
               </div>
             </div>
           )}
-          {data.patientSummary.medications.length > 0 && (
+          {intake.currentMedications && intake.currentMedications.length > 0 && (
             <div className="mb-3">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Medications</p>
               <div className="mt-1.5 flex flex-wrap gap-1.5">
-                {data.patientSummary.medications.map((m, i) => (
+                {intake.currentMedications.map((m, i) => (
                   <span key={i} className="rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-[11px] font-medium text-blue-700 dark:border-blue-800/40 dark:bg-blue-950/30 dark:text-blue-300">
-                    {m}
+                    {m.name}
                   </span>
                 ))}
               </div>
             </div>
           )}
-          {data.patientSummary.allergies.length > 0 && (
+          {intake.allergies && intake.allergies.length > 0 && (
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Allergies</p>
               <div className="mt-1.5 flex flex-wrap gap-1.5">
-                {data.patientSummary.allergies.map((a, i) => (
+                {intake.allergies.map((a, i) => (
                   <span key={i} className="rounded-full border border-red-200 bg-red-50 px-2.5 py-0.5 text-[11px] font-medium text-red-700 dark:border-red-800/40 dark:bg-red-950/30 dark:text-red-300">
                     {a}
                   </span>
@@ -701,24 +541,46 @@ function ComparisonViewer({ data }: { data: ComparisonData }) {
               </div>
             </div>
           )}
-          {data.patientSummary.conditions.length === 0 && data.patientSummary.medications.length === 0 && data.patientSummary.allergies.length === 0 && (
+          {(!intake.medicalHistory || intake.medicalHistory.length === 0) &&
+            (!intake.currentMedications || intake.currentMedications.length === 0) &&
+            (!intake.allergies || intake.allergies.length === 0) && (
             <p className="text-xs text-zinc-400 dark:text-zinc-500">No patient data available for comparison.</p>
           )}
         </div>
       </Section>
 
-      {/* ── Sections from reference ── */}
-      <Section
-        icon={<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 8h8M6 5l-3 3 3 3M10 5l3 3-3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>}
-        title="Reference Sections"
-        count={data.sections.length}
-      >
-        <div className="flex flex-col gap-2.5">
-          {data.sections.map((section, i) => (
-            <SectionCard key={i} section={section} />
-          ))}
-        </div>
-      </Section>
+      {/* ── Risk Factors ── */}
+      {intake.riskFactors && (
+        <Section
+          icon={<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M8 2l6 10H2L8 2z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" /></svg>}
+          title="Risk Factors"
+        >
+          <div className="rounded-xl border border-zinc-100 bg-white p-4 dark:border-white/6 dark:bg-white/2">
+            <div className="flex flex-wrap gap-2">
+              <span className={`rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${intake.riskFactors.smokingStatus === "current_smoker"
+                ? "border-red-200 bg-red-50 text-red-700 dark:border-red-800/40 dark:bg-red-950/30 dark:text-red-300"
+                : intake.riskFactors.smokingStatus === "former_smoker"
+                  ? "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800/40 dark:bg-amber-950/30 dark:text-amber-300"
+                  : "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800/40 dark:bg-emerald-950/30 dark:text-emerald-300"
+                }`}>
+                {intake.riskFactors.smokingStatus === "current_smoker"
+                  ? `Smoker (${intake.riskFactors.cigarettesPerDay}/day)`
+                  : intake.riskFactors.smokingStatus === "former_smoker"
+                    ? "Former smoker"
+                    : "Non-smoker"}
+              </span>
+              <span className={`rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${intake.riskFactors.diabetesDiagnosed
+                ? "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800/40 dark:bg-amber-950/30 dark:text-amber-300"
+                : "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800/40 dark:bg-emerald-950/30 dark:text-emerald-300"
+                }`}>
+                {intake.riskFactors.diabetesDiagnosed
+                  ? `Diabetes (HbA1c ${intake.riskFactors.hba1c ?? "N/A"}%)`
+                  : "No diabetes"}
+              </span>
+            </div>
+          </div>
+        </Section>
+      )}
     </div>
   );
 }
@@ -738,45 +600,6 @@ export function JsonOutputModal({ open, onClose, generatedJson, finalJson }: Jso
   const [activeTab, setActiveTab] = useState<TabId>("generated");
   const [copied, setCopied] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
-
-  const [comparisonData, setComparisonData] = useState<ComparisonData | null>(null);
-  const [comparisonLoading, setComparisonLoading] = useState(false);
-  const [comparisonError, setComparisonError] = useState<string | null>(null);
-  const comparisonTriggered = useRef(false);
-
-  const runComparison = useCallback(async (data: object) => {
-    setComparisonLoading(true);
-    setComparisonError(null);
-    setComparisonData(null);
-    try {
-      const res = await fetch("/api/compare-periodontitis", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      if (!res.ok) throw new Error(`Comparison failed (${res.status})`);
-      const result = await res.json();
-      setComparisonData(result);
-      setActiveTab("comparison");
-    } catch (err) {
-      setComparisonError(err instanceof Error ? err.message : "Comparison failed");
-    } finally {
-      setComparisonLoading(false);
-    }
-  }, []);
-
-  // Auto-trigger comparison when finalJson becomes available
-  useEffect(() => {
-    if (open && finalJson && !comparisonTriggered.current) {
-      comparisonTriggered.current = true;
-      runComparison(finalJson);
-    }
-    if (!open) {
-      comparisonTriggered.current = false;
-      setComparisonData(null);
-      setComparisonError(null);
-    }
-  }, [open, finalJson, runComparison]);
 
   useEffect(() => {
     if (!open) return;
@@ -800,7 +623,7 @@ export function JsonOutputModal({ open, onClose, generatedJson, finalJson }: Jso
 
   if (!open) return null;
 
-  const currentData = activeTab === "generated" ? generatedJson : activeTab === "final" ? finalJson : comparisonData;
+  const currentData = activeTab === "generated" ? generatedJson : finalJson;
 
   const handleCopy = () => {
     if (currentData) {
@@ -815,7 +638,7 @@ export function JsonOutputModal({ open, onClose, generatedJson, finalJson }: Jso
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    const names: Record<TabId, string> = { generated: "generated-output", final: "final-output", comparison: "periodontitis-comparison" };
+    const names: Record<TabId, string> = { generated: "generated-output", final: "final-output", comparison: "periodontitis-diagnosis" };
     a.download = `${names[activeTab]}.json`;
     a.click();
     URL.revokeObjectURL(url);
@@ -864,7 +687,7 @@ export function JsonOutputModal({ open, onClose, generatedJson, finalJson }: Jso
             {([
               { id: "generated" as TabId, label: "Generated" },
               { id: "final" as TabId, label: "Final Record" },
-              { id: "comparison" as TabId, label: "Comparison" },
+              { id: "comparison" as TabId, label: "Diagnosis" },
             ]).map((tab) => (
               <button
                 key={tab.id}
@@ -876,9 +699,6 @@ export function JsonOutputModal({ open, onClose, generatedJson, finalJson }: Jso
                 }`}
               >
                 {tab.label}
-                {tab.id === "comparison" && comparisonLoading && (
-                  <span className="absolute -right-0.5 -top-0.5 h-2 w-2 animate-pulse rounded-full bg-amber-400" />
-                )}
               </button>
             ))}
           </div>
@@ -912,35 +732,15 @@ export function JsonOutputModal({ open, onClose, generatedJson, finalJson }: Jso
               <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">Generate JSON first to see merged data</p>
             </div>
           )}
-          {activeTab === "comparison" && comparisonLoading && <ComparisonLoader />}
-          {activeTab === "comparison" && comparisonError && (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-red-50 text-red-400 dark:bg-red-900/30">
-                <svg width="20" height="20" viewBox="0 0 16 16" fill="none">
-                  <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5" />
-                  <path d="M8 5v3M8 10h.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                </svg>
-              </div>
-              <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">{comparisonError}</p>
-              <button
-                onClick={() => finalJson && runComparison(finalJson)}
-                className="mt-3 rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:border-white/10 dark:text-zinc-300 dark:hover:bg-white/6"
-              >
-                Retry
-              </button>
-            </div>
-          )}
-          {activeTab === "comparison" && !comparisonLoading && !comparisonError && comparisonData && (
-            <ComparisonViewer data={comparisonData} />
-          )}
-          {activeTab === "comparison" && !comparisonLoading && !comparisonError && !comparisonData && (
+          {activeTab === "comparison" && finalJson && <DiagnosisViewer data={finalJson} />}
+          {activeTab === "comparison" && !finalJson && (
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-zinc-100 text-zinc-400 dark:bg-white/6">
                 <svg width="20" height="20" viewBox="0 0 16 16" fill="none">
                   <path d="M4 8h8M6 5l-3 3 3 3M10 5l3 3-3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>
-              <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">No comparison data</p>
+              <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">No diagnosis data</p>
               <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">Generate final JSON to run periodontitis comparison</p>
             </div>
           )}

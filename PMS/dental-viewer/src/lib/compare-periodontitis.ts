@@ -63,21 +63,6 @@ export interface NanokPeriodontitis {
   };
 }
 
-export interface FieldMatch {
-  referenceKey: string;
-  referenceValue: string;
-  patientField: string;
-  patientValue: string;
-  section: string;
-}
-
-export interface SectionComparison {
-  sectionName: string;
-  referenceData: Record<string, unknown>;
-  matches: FieldMatch[];
-  unmatchedCriteria: { key: string; value: string }[];
-}
-
 export interface DiagnosisResult {
   periodontitis_detected: boolean;
   full_diagnosis: string;
@@ -91,154 +76,12 @@ export interface DiagnosisResult {
 export interface ComparisonResult {
   comparedAt: string;
   patient: { fullName: string; medicalRecordNumber: string };
-  referenceSource: {
-    title: string;
-    workshop: string;
-    reference: string;
-  };
-  sections: SectionComparison[];
   patientSummary: {
     conditions: string[];
     medications: string[];
     allergies: string[];
   };
-  overallMatchCount: number;
-  overallUnmatchedCount: number;
   result: DiagnosisResult;
-}
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-function flattenObject(obj: unknown, prefix = ""): { key: string; value: string }[] {
-  const entries: { key: string; value: string }[] = [];
-  if (Array.isArray(obj)) {
-    for (let i = 0; i < obj.length; i++) {
-      const p = prefix ? `${prefix}[${i}]` : `[${i}]`;
-      if (typeof obj[i] === "object" && obj[i] !== null) entries.push(...flattenObject(obj[i], p));
-      else entries.push({ key: p, value: String(obj[i]) });
-    }
-  } else if (typeof obj === "object" && obj !== null) {
-    for (const [k, v] of Object.entries(obj)) {
-      const p = prefix ? `${prefix}.${k}` : k;
-      if (typeof v === "object" && v !== null) entries.push(...flattenObject(v, p));
-      else entries.push({ key: p, value: String(v) });
-    }
-  } else {
-    entries.push({ key: prefix, value: String(obj) });
-  }
-  return entries;
-}
-
-/** Collect all searchable text fragments from patient intake + nanok clinical data. */
-function collectPatientTexts(
-  intake: PatientIntake,
-  nanok: NanokPeriodontitis
-): { text: string; source: string }[] {
-  const texts: { text: string; source: string }[] = [];
-
-  // From patient form
-  for (const c of intake.medicalHistory ?? []) {
-    texts.push({ text: c.condition, source: `Medical history: "${c.condition}" (diagnosed ${c.diagnosedAt})` });
-    if (c.notes) texts.push({ text: c.notes, source: `Medical history notes for "${c.condition}"` });
-  }
-  for (const m of intake.currentMedications ?? []) {
-    const detail = [m.name, m.dosage, m.frequency].filter(Boolean).join(", ");
-    texts.push({ text: m.name, source: `Medication: ${detail}` });
-  }
-  for (const a of intake.allergies ?? []) {
-    texts.push({ text: a, source: `Allergy: ${a}` });
-  }
-
-  // From patient intake risk factors (structured fields)
-  const rf = intake.riskFactors;
-  if (rf) {
-    if (rf.smokingStatus === "current_smoker") {
-      texts.push({ text: "Current smoker", source: `Intake: current smoker (${rf.cigarettesPerDay ?? 0} cigarettes/day)` });
-    } else if (rf.smokingStatus === "former_smoker") {
-      texts.push({ text: "Former smoker", source: "Intake: former smoker" });
-    } else if (rf.smokingStatus === "non_smoker") {
-      texts.push({ text: "Non-smoker", source: "Intake: non-smoker" });
-    }
-    if (rf.diabetesDiagnosed) {
-      texts.push({ text: "diabetes", source: `Intake: diabetes diagnosed (HbA1c ${rf.hba1c ?? "N/A"}%)` });
-    }
-  }
-
-  // From nanok clinical findings
-  const cf = nanok.clinical_findings;
-  if (cf) {
-    if (cf.radiographic_bone_loss?.extent) {
-      const ext = cf.radiographic_bone_loss.extent.replace(/_/g, " ");
-      texts.push({ text: ext, source: `Nanok: radiographic bone loss extent (${ext})` });
-    }
-    if (cf.radiographic_bone_loss?.pattern) {
-      const pat = cf.radiographic_bone_loss.pattern.replace(/_/g, " ");
-      texts.push({ text: pat, source: `Nanok: bone loss pattern (${pat})` });
-    }
-    if (cf.furcation_involvement) {
-      for (const f of cf.furcation_involvement) {
-        if (f.class) texts.push({ text: `Class ${f.class}`, source: `Nanok: furcation involvement tooth ${f.tooth} (Class ${f.class})` });
-      }
-    }
-    if (cf.ridge_defects) {
-      texts.push({ text: cf.ridge_defects, source: `Nanok: ridge defects (${cf.ridge_defects})` });
-    }
-  }
-
-  // Smoking from nanok
-  const smoking = nanok.risk_modifiers?.smoking;
-  if (smoking) {
-    const status = smoking.current_smoker ? "Current smoker" : "Non-smoker";
-    texts.push({ text: status, source: `Nanok: smoking status (${status})` });
-  }
-
-  // Diabetes from nanok
-  const diabetes = nanok.risk_modifiers?.diabetes;
-  if (diabetes?.diagnosed) {
-    texts.push({ text: "diabetes", source: `Nanok: diabetes diagnosed (HbA1c ${diabetes.hba1c ?? "N/A"}%)` });
-  }
-
-  return texts;
-}
-
-function findMatches(
-  refValue: string,
-  refKey: string,
-  sectionName: string,
-  patientTexts: { text: string; source: string }[]
-): FieldMatch[] {
-  const refLower = refValue.toLowerCase();
-  const matches: FieldMatch[] = [];
-  for (const pt of patientTexts) {
-    const ptLower = pt.text.toLowerCase();
-    if (refLower.includes(ptLower) || ptLower.includes(refLower)) {
-      if (pt.text.length < 3 && refValue.length < 3) continue;
-      matches.push({
-        referenceKey: refKey,
-        referenceValue: refValue,
-        patientField: pt.source,
-        patientValue: pt.text,
-        section: sectionName,
-      });
-    }
-  }
-  return matches;
-}
-
-function compareSection(
-  sectionName: string,
-  sectionData: Record<string, unknown>,
-  patientTexts: { text: string; source: string }[]
-): SectionComparison {
-  const flat = flattenObject(sectionData);
-  const allMatches: FieldMatch[] = [];
-  const unmatched: { key: string; value: string }[] = [];
-  for (const { key, value } of flat) {
-    const matches = findMatches(value, key, sectionName, patientTexts);
-    if (matches.length > 0) allMatches.push(...matches);
-    else unmatched.push({ key, value });
-  }
-  return { sectionName, referenceData: sectionData, matches: allMatches, unmatchedCriteria: unmatched };
 }
 
 // ─── Threshold parsing (driven by reference JSON values) ────────────────────
@@ -490,16 +333,14 @@ function determineExtent(nanok: NanokPeriodontitis, stagingData: Record<string, 
 
   if (teethPct == null || descriptors.length === 0) return "Undetermined";
 
-  // Check against reference descriptors — look for <30% = Localized, else Generalized
   for (const desc of descriptors) {
     const pctMatch = desc.match(/<\s*(\d+)%/);
     if (pctMatch) {
       const threshold = parseFloat(pctMatch[1]);
-      if (teethPct < threshold) return desc.split("(")[0].trim(); // "Localized"
+      if (teethPct < threshold) return desc.split("(")[0].trim();
     }
   }
 
-  // If > threshold or no match, check for "Generalized" descriptor
   const generalized = descriptors.find((d) => d.toLowerCase().includes("generalized"));
   if (generalized) return "Generalized";
 
@@ -509,45 +350,17 @@ function determineExtent(nanok: NanokPeriodontitis, stagingData: Record<string, 
 // ─── Main comparison function ────────────────────────────────────────────────
 
 /**
- * Runs a pure JSON-to-JSON comparison.
- * Uses patient intake (form data) + nanok clinical data (AI imaging)
- * against the staging/grading reference.
+ * Compares patient intake + nanok clinical data against the staging/grading
+ * reference to produce a periodontitis diagnosis.
+ * The reference data is used internally only — not included in the output.
  */
 export function compareAgainstReference(
   intake: PatientIntake,
   nanokPerio: NanokPeriodontitis | null,
   referenceData: Record<string, unknown>
 ): ComparisonResult {
-  const source = (referenceData.source ?? {}) as Record<string, unknown>;
   const periodontitis = (referenceData.periodontitis ?? {}) as Record<string, unknown>;
   const nanok = nanokPerio ?? {};
-
-  const patientTexts = collectPatientTexts(intake, nanok);
-
-  // Build sections dynamically from reference
-  const sections: SectionComparison[] = [];
-  for (const [key, value] of Object.entries(periodontitis)) {
-    if (typeof value === "object" && value !== null) {
-      sections.push(compareSection(
-        key.replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase()),
-        value as Record<string, unknown>,
-        patientTexts
-      ));
-    }
-  }
-  for (const [key, value] of Object.entries(referenceData)) {
-    if (key === "title" || key === "source" || key === "periodontitis") continue;
-    if (typeof value === "object" && value !== null) {
-      sections.push(compareSection(
-        key.replace(/_/g, " ").replace(/^\w/, (c) => c.toUpperCase()),
-        value as Record<string, unknown>,
-        patientTexts
-      ));
-    }
-  }
-
-  const overallMatchCount = sections.reduce((sum, s) => sum + s.matches.length, 0);
-  const overallUnmatchedCount = sections.reduce((sum, s) => sum + s.unmatchedCriteria.length, 0);
 
   // Determine stage, grade, extent from nanok clinical data + reference
   const stagingData = (periodontitis.staging ?? {}) as Record<string, unknown>;
@@ -574,19 +387,11 @@ export function compareAgainstReference(
       fullName: intake.personalInfo?.fullName ?? "Unknown",
       medicalRecordNumber: intake.personalInfo?.medicalRecordNumber ?? "N/A",
     },
-    referenceSource: {
-      title: (referenceData.title as string) ?? "",
-      workshop: (source.workshop as string) ?? "",
-      reference: (source.reference as string) ?? "",
-    },
-    sections,
     patientSummary: {
       conditions: (intake.medicalHistory ?? []).map((c) => c.condition),
       medications: (intake.currentMedications ?? []).map((m) => m.name),
       allergies: intake.allergies ?? [],
     },
-    overallMatchCount,
-    overallUnmatchedCount,
     result: {
       periodontitis_detected: periodontitisDetected,
       full_diagnosis: fullDiagnosis,
