@@ -1,0 +1,91 @@
+{
+  "input_dicom": "BW01.dcm",
+  "pixel_spacing_mm": {
+    "row": 0.08,
+    "col": 0.08
+  },
+  "teeth": [
+    {
+      "tooth_id": 21,
+      "class_id": 0,
+      "confidence": 0.92,
+      "bounding_box": {
+        "x1": 360,
+        "y1": 280,
+        "x2": 520,
+        "y2": 460
+      },
+      "keypoints": {
+        "CEJ_left": {
+          "x": 380,
+          "y": 310,
+          "confidence": 0.91
+        },
+        "CEJ_right": {
+          "x": 500,
+          "y": 312,
+          "confidence": 0.89
+        },
+        "BL_left": {
+          "x": 385,
+          "y": 420,
+          "confidence": 0.87
+        },
+        "BL_right": {
+          "x": 495,
+          "y": 425,
+          "confidence": 0.90
+        }
+      },
+      "measurements_mm": {
+        "left": {
+          "CEJ_to_BL": 8.84
+        },
+        "right": {
+          "CEJ_to_BL": 9.05
+        }
+      }
+    },
+    {
+      "tooth_id": 22,
+      "class_id": 0,
+      "confidence": 0.88,
+      "bounding_box": {
+        "x1": 540,
+        "y1": 270,
+        "x2": 690,
+        "y2": 450
+      },
+      "keypoints": {
+        "CEJ_left": {
+          "x": 560,
+          "y": 300,
+          "confidence": 0.93
+        },
+        "CEJ_right": {
+          "x": 670,
+          "y": 305,
+          "confidence": 0.90
+        },
+        "BL_left": {
+          "x": 565,
+          "y": 415,
+          "confidence": 0.86
+        },
+        "BL_right": {
+          "x": 665,
+          "y": 418,
+          "confidence": 0.88
+        }
+      },
+      "measurements_mm": {
+        "left": {
+          "CEJ_to_BL": 9.20
+        },
+        "right": {
+          "CEJ_to_BL": 8.96
+        }
+      }
+    }
+  ]
+}

@@ -445,24 +445,24 @@ function DiagnosisViewer({ data }: { data: object }) {
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 8l3 3 7-7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
             )}
           </span>
-          <h3 className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
             Diagnosis Result
           </h3>
         </div>
 
-        <p className="text-lg font-semibold text-zinc-900 dark:text-white">
+        <p className="text-xl font-semibold text-zinc-900 dark:text-white">
           {result.full_diagnosis}
         </p>
 
         {result.periodontitis_detected && (
           <div className="mt-3 flex flex-wrap gap-2">
-            <span className="rounded-full border border-red-200 bg-white px-3 py-1 text-xs font-semibold text-red-700 dark:border-red-800/40 dark:bg-white/4 dark:text-red-300">
+            <span className="rounded-full border border-red-200 bg-white px-3.5 py-1.5 text-sm font-semibold text-red-700 dark:border-red-800/40 dark:bg-white/4 dark:text-red-300">
               {result.stage}
             </span>
-            <span className="rounded-full border border-amber-200 bg-white px-3 py-1 text-xs font-semibold text-amber-700 dark:border-amber-800/40 dark:bg-white/4 dark:text-amber-300">
+            <span className="rounded-full border border-amber-200 bg-white px-3.5 py-1.5 text-sm font-semibold text-amber-700 dark:border-amber-800/40 dark:bg-white/4 dark:text-amber-300">
               {result.grade}
             </span>
-            <span className="rounded-full border border-zinc-200 bg-white px-3 py-1 text-xs font-semibold text-zinc-700 dark:border-white/10 dark:bg-white/4 dark:text-zinc-300">
+            <span className="rounded-full border border-zinc-200 bg-white px-3.5 py-1.5 text-sm font-semibold text-zinc-700 dark:border-white/10 dark:bg-white/4 dark:text-zinc-300">
               {result.extent}
             </span>
           </div>
@@ -471,11 +471,11 @@ function DiagnosisViewer({ data }: { data: object }) {
         {/* Staging reasoning */}
         {result.staging_reasoning.length > 0 && (
           <div className="mt-4">
-            <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Staging Reasoning</p>
-            <ul className="flex flex-col gap-1">
+            <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Staging Reasoning</p>
+            <ul className="flex flex-col gap-1.5">
               {result.staging_reasoning.map((r, i) => (
-                <li key={i} className="flex gap-2 text-xs leading-relaxed text-zinc-600 dark:text-zinc-300">
-                  <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-zinc-300 dark:bg-zinc-600" />
+                <li key={i} className="flex gap-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">
+                  <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-zinc-300 dark:bg-zinc-600" />
                   {r}
                 </li>
               ))}
@@ -486,11 +486,11 @@ function DiagnosisViewer({ data }: { data: object }) {
         {/* Grading reasoning */}
         {result.grading_reasoning.length > 0 && (
           <div className="mt-3">
-            <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Grading Reasoning</p>
-            <ul className="flex flex-col gap-1">
+            <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Grading Reasoning</p>
+            <ul className="flex flex-col gap-1.5">
               {result.grading_reasoning.map((r, i) => (
-                <li key={i} className="flex gap-2 text-xs leading-relaxed text-zinc-600 dark:text-zinc-300">
-                  <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-zinc-300 dark:bg-zinc-600" />
+                <li key={i} className="flex gap-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">
+                  <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-zinc-300 dark:bg-zinc-600" />
                   {r}
                 </li>
               ))}
@@ -507,10 +507,10 @@ function DiagnosisViewer({ data }: { data: object }) {
         <div className="rounded-xl border border-zinc-100 bg-white p-4 dark:border-white/6 dark:bg-white/2">
           {intake.medicalHistory && intake.medicalHistory.length > 0 && (
             <div className="mb-3">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Conditions</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Conditions</p>
               <div className="mt-1.5 flex flex-wrap gap-1.5">
                 {intake.medicalHistory.map((c, i) => (
-                  <span key={i} className="rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-0.5 text-[11px] font-medium text-zinc-700 dark:border-white/10 dark:bg-white/4 dark:text-zinc-300">
+                  <span key={i} className="rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-sm font-medium text-zinc-700 dark:border-white/10 dark:bg-white/4 dark:text-zinc-300">
                     {c.condition}
                   </span>
                 ))}
@@ -519,10 +519,10 @@ function DiagnosisViewer({ data }: { data: object }) {
           )}
           {intake.currentMedications && intake.currentMedications.length > 0 && (
             <div className="mb-3">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Medications</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Medications</p>
               <div className="mt-1.5 flex flex-wrap gap-1.5">
                 {intake.currentMedications.map((m, i) => (
-                  <span key={i} className="rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-[11px] font-medium text-blue-700 dark:border-blue-800/40 dark:bg-blue-950/30 dark:text-blue-300">
+                  <span key={i} className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700 dark:border-blue-800/40 dark:bg-blue-950/30 dark:text-blue-300">
                     {m.name}
                   </span>
                 ))}
@@ -531,10 +531,10 @@ function DiagnosisViewer({ data }: { data: object }) {
           )}
           {intake.allergies && intake.allergies.length > 0 && (
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Allergies</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Allergies</p>
               <div className="mt-1.5 flex flex-wrap gap-1.5">
                 {intake.allergies.map((a, i) => (
-                  <span key={i} className="rounded-full border border-red-200 bg-red-50 px-2.5 py-0.5 text-[11px] font-medium text-red-700 dark:border-red-800/40 dark:bg-red-950/30 dark:text-red-300">
+                  <span key={i} className="rounded-full border border-red-200 bg-red-50 px-3 py-1 text-sm font-medium text-red-700 dark:border-red-800/40 dark:bg-red-950/30 dark:text-red-300">
                     {a}
                   </span>
                 ))}
@@ -544,7 +544,7 @@ function DiagnosisViewer({ data }: { data: object }) {
           {(!intake.medicalHistory || intake.medicalHistory.length === 0) &&
             (!intake.currentMedications || intake.currentMedications.length === 0) &&
             (!intake.allergies || intake.allergies.length === 0) && (
-            <p className="text-xs text-zinc-400 dark:text-zinc-500">No patient data available for comparison.</p>
+            <p className="text-sm text-zinc-400 dark:text-zinc-500">No patient data available for comparison.</p>
           )}
         </div>
       </Section>
@@ -557,7 +557,7 @@ function DiagnosisViewer({ data }: { data: object }) {
         >
           <div className="rounded-xl border border-zinc-100 bg-white p-4 dark:border-white/6 dark:bg-white/2">
             <div className="flex flex-wrap gap-2">
-              <span className={`rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${intake.riskFactors.smokingStatus === "current_smoker"
+              <span className={`rounded-full border px-3 py-1 text-sm font-medium ${intake.riskFactors.smokingStatus === "current_smoker"
                 ? "border-red-200 bg-red-50 text-red-700 dark:border-red-800/40 dark:bg-red-950/30 dark:text-red-300"
                 : intake.riskFactors.smokingStatus === "former_smoker"
                   ? "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800/40 dark:bg-amber-950/30 dark:text-amber-300"
@@ -569,7 +569,7 @@ function DiagnosisViewer({ data }: { data: object }) {
                     ? "Former smoker"
                     : "Non-smoker"}
               </span>
-              <span className={`rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${intake.riskFactors.diabetesDiagnosed
+              <span className={`rounded-full border px-3 py-1 text-sm font-medium ${intake.riskFactors.diabetesDiagnosed
                 ? "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800/40 dark:bg-amber-950/30 dark:text-amber-300"
                 : "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800/40 dark:bg-emerald-950/30 dark:text-emerald-300"
                 }`}>
