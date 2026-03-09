@@ -31,7 +31,38 @@ interface PatientIntake {
   };
 }
 
-// ─── Syntax-highlighted code viewer (Generated JSON tab) ─────────────────────
+// ─── Types for BL (bone level) data ──────────────────────────────────────────
+
+interface BLKeypoint {
+  x: number;
+  y: number;
+  confidence: number;
+}
+
+interface BLToothData {
+  tooth_id: number;
+  class_id: number;
+  confidence: number;
+  bounding_box: { x1: number; y1: number; x2: number; y2: number };
+  keypoints: {
+    CEJ_left: BLKeypoint;
+    CEJ_right: BLKeypoint;
+    BL_left: BLKeypoint;
+    BL_right: BLKeypoint;
+  };
+  measurements_mm: {
+    left: { CEJ_to_BL: number };
+    right: { CEJ_to_BL: number };
+  };
+}
+
+interface BoneLevelData {
+  input_dicom: string;
+  pixel_spacing_mm: { row: number; col: number };
+  teeth: BLToothData[];
+}
+
+// ─── Syntax-highlighted code viewer (kept for potential future use) ──────────
 
 function colorizeJsonLine(line: string): React.ReactNode {
   const keyValueMatch = line.match(/^(\s*)"([^"]+)"(:\s*)(.*)/);
@@ -76,29 +107,29 @@ function CodeViewer({ data }: { data: object }) {
   const lines = JSON.stringify(data, null, 2).split("\n");
 
   return (
-    <div className="overflow-hidden rounded-xl border border-white/6 bg-zinc-950 dark:bg-black">
-      <div className="flex items-center gap-2 border-b border-white/6 px-4 py-2.5">
+    <div className="overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50 dark:border-white/6 dark:bg-zinc-900">
+      <div className="flex items-center gap-2 border-b border-zinc-200 px-4 py-2.5 dark:border-white/6">
         <div className="flex gap-1.5">
-          <div className="h-2.5 w-2.5 rounded-full bg-zinc-700" />
-          <div className="h-2.5 w-2.5 rounded-full bg-zinc-700" />
-          <div className="h-2.5 w-2.5 rounded-full bg-zinc-700" />
+          <div className="h-2.5 w-2.5 rounded-full bg-zinc-300 dark:bg-zinc-700" />
+          <div className="h-2.5 w-2.5 rounded-full bg-zinc-300 dark:bg-zinc-700" />
+          <div className="h-2.5 w-2.5 rounded-full bg-zinc-300 dark:bg-zinc-700" />
         </div>
-        <span className="ml-1 text-[10px] font-medium uppercase tracking-wider text-zinc-600">
+        <span className="ml-1 text-[10px] font-medium uppercase tracking-wider text-zinc-500">
           json
         </span>
-        <span className="ml-auto text-[10px] text-zinc-600">
+        <span className="ml-auto text-[10px] text-zinc-500">
           {lines.length} lines
         </span>
       </div>
       <div className="flex overflow-x-auto">
-        <div className="shrink-0 select-none border-r border-white/4 py-4 text-right">
+        <div className="shrink-0 select-none border-r border-zinc-200 py-4 text-right dark:border-white/4">
           {lines.map((_, i) => (
-            <div key={i} className="px-3 font-mono text-[11px] leading-5 text-zinc-700">
+            <div key={i} className="px-3 font-mono text-[11px] leading-5 text-zinc-400 dark:text-zinc-600">
               {i + 1}
             </div>
           ))}
         </div>
-        <pre className="flex-1 py-4 pl-4 pr-6 font-mono text-[11px] leading-5 text-zinc-300">
+        <pre className="flex-1 py-4 pl-4 pr-6 font-mono text-[11px] leading-5 text-zinc-700 dark:text-zinc-300">
           {lines.map((line, i) => (
             <div key={i}>{colorizeJsonLine(line)}</div>
           ))}
@@ -108,7 +139,7 @@ function CodeViewer({ data }: { data: object }) {
   );
 }
 
-// ─── Patient record viewer (Final JSON tab) ──────────────────────────────────
+// ─── Patient record viewer (Patient Data tab) ───────────────────────────────
 
 function initials(name?: string) {
   if (!name) return "?";
@@ -130,14 +161,14 @@ function Section({ icon, title, count, children }: { icon: React.ReactNode; titl
   return (
     <div>
       <div className="mb-3 flex items-center gap-2.5">
-        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-zinc-100 text-zinc-500 dark:bg-white/6 dark:text-zinc-400">
+        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-50 text-indigo-500 dark:bg-indigo-900/30 dark:text-indigo-400">
           {icon}
         </span>
         <h3 className="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
           {title}
         </h3>
         {count !== undefined && (
-          <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-[10px] font-semibold text-zinc-500 dark:bg-white/6 dark:text-zinc-400">
+          <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-semibold text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400">
             {count}
           </span>
         )}
@@ -201,14 +232,14 @@ function FinalJsonViewer({ data }: { data: object }) {
     ? BLOOD_COLORS[info.bloodType] ?? "bg-zinc-100 text-zinc-700 ring-zinc-200 dark:bg-white/6 dark:text-zinc-300 dark:ring-white/10"
     : null;
 
-  const extraEntries = Object.entries(d).filter(([k]) => k !== "patientIntake" && k !== "result");
+  const extraEntries = Object.entries(d).filter(([k]) => k !== "patientIntake" && k !== "result" && k !== "boneLevelAnalysis");
 
   return (
     <div className="flex flex-col gap-6">
 
       {/* ── Patient header ── */}
-      <div className="flex items-center gap-4 rounded-2xl border border-zinc-200 bg-linear-to-br from-zinc-50 to-white p-5 dark:border-white/8 dark:from-white/3 dark:to-white/1">
-        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-zinc-900 text-lg font-bold text-white dark:bg-zinc-200 dark:text-zinc-900">
+      <div className="flex items-center gap-4 rounded-2xl border border-indigo-100 bg-linear-to-br from-indigo-50/40 to-white p-5 dark:border-indigo-800/20 dark:from-indigo-950/10 dark:to-white/1">
+        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-lg font-bold text-white dark:bg-indigo-500">
           {initials(info.fullName)}
         </div>
         <div className="min-w-0 flex-1">
@@ -393,7 +424,88 @@ function FinalJsonViewer({ data }: { data: object }) {
   );
 }
 
-// ─── Diagnosis viewer (Comparison tab) ──────────────────────────────────────
+// ─── Reasoning source classification + tooltip ──────────────────────────────
+
+type ReasoningSource = "patient_form" | "bl_analysis" | "default";
+
+function classifyReasoningSource(text: string): ReasoningSource {
+  const lower = text.toLowerCase();
+  const patientKeywords = ["smoker", "smoking", "cigarette", "hba1c", "diabetes", "non-smoker", "normoglycemic"];
+  const blKeywords = ["cal ", "cal\u00a0", "bone loss", "probing depth", "furcation", "vertical bone loss", "ridge defect", "tooth loss", "teeth lost", "radiographic"];
+  if (patientKeywords.some((k) => lower.includes(k))) return "patient_form";
+  if (blKeywords.some((k) => lower.includes(k))) return "bl_analysis";
+  return "default";
+}
+
+const SOURCE_META: Record<ReasoningSource, { dot: string; label: string; description: string }> = {
+  patient_form: {
+    dot: "bg-blue-400 dark:bg-blue-400",
+    label: "Patient Form",
+    description: "This data comes from the patient intake form (risk factors, medical history).",
+  },
+  bl_analysis: {
+    dot: "bg-teal-400 dark:bg-teal-400",
+    label: "AI Bone Level Analysis",
+    description: "This data comes from the AI-powered DICOM bone level analysis (mock_BL.JSON).",
+  },
+  default: {
+    dot: "bg-zinc-400 dark:bg-zinc-500",
+    label: "System Default",
+    description: "This is a default/baseline assumption used by the comparison algorithm.",
+  },
+};
+
+function ReasoningItem({ text }: { text: string }) {
+  const [tooltip, setTooltip] = useState<{ x: number; y: number } | null>(null);
+  const source = classifyReasoningSource(text);
+  const meta = SOURCE_META[source];
+
+  return (
+    <li
+      className="flex gap-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-300 cursor-default"
+      onMouseMove={(e) => {
+        const x = Math.min(e.clientX + 12, window.innerWidth - 280);
+        const y = Math.min(e.clientY - 10, window.innerHeight - 80);
+        setTooltip({ x, y });
+      }}
+      onMouseLeave={() => setTooltip(null)}
+    >
+      <span className={`mt-2 h-1.5 w-1.5 shrink-0 rounded-full ${meta.dot}`} />
+      {text}
+      {tooltip && (
+        <div
+          className="fixed z-[100] pointer-events-none rounded-lg border border-zinc-200 bg-white px-3 py-2 shadow-lg dark:border-white/10 dark:bg-zinc-800"
+          style={{ left: tooltip.x, top: tooltip.y }}
+        >
+          <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-200">
+            Source: {meta.label}
+          </p>
+          <p className="mt-0.5 text-[11px] text-zinc-500 dark:text-zinc-400 max-w-[250px]">
+            {meta.description}
+          </p>
+        </div>
+      )}
+    </li>
+  );
+}
+
+function ReasoningLegend() {
+  return (
+    <div className="mt-4 flex flex-wrap gap-4 text-[10px] text-zinc-400 dark:text-zinc-500">
+      <span className="flex items-center gap-1.5">
+        <span className="h-1.5 w-1.5 rounded-full bg-blue-400" /> Patient Form Data
+      </span>
+      <span className="flex items-center gap-1.5">
+        <span className="h-1.5 w-1.5 rounded-full bg-teal-400" /> AI Analysis Data
+      </span>
+      <span className="flex items-center gap-1.5">
+        <span className="h-1.5 w-1.5 rounded-full bg-zinc-400" /> System Default
+      </span>
+    </div>
+  );
+}
+
+// ─── Diagnosis viewer (Generalized Diagnosis tab) ───────────────────────────
 
 interface DiagnosisResult {
   periodontitis_detected: boolean;
@@ -474,10 +586,7 @@ function DiagnosisViewer({ data }: { data: object }) {
             <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Staging Reasoning</p>
             <ul className="flex flex-col gap-1.5">
               {result.staging_reasoning.map((r, i) => (
-                <li key={i} className="flex gap-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">
-                  <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-zinc-300 dark:bg-zinc-600" />
-                  {r}
-                </li>
+                <ReasoningItem key={i} text={r} />
               ))}
             </ul>
           </div>
@@ -489,14 +598,13 @@ function DiagnosisViewer({ data }: { data: object }) {
             <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Grading Reasoning</p>
             <ul className="flex flex-col gap-1.5">
               {result.grading_reasoning.map((r, i) => (
-                <li key={i} className="flex gap-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">
-                  <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-zinc-300 dark:bg-zinc-600" />
-                  {r}
-                </li>
+                <ReasoningItem key={i} text={r} />
               ))}
             </ul>
           </div>
         )}
+
+        <ReasoningLegend />
       </div>
 
       {/* ── Patient data summary ── */}
@@ -585,9 +693,145 @@ function DiagnosisViewer({ data }: { data: object }) {
   );
 }
 
+// ─── AI Teeth Data viewer ───────────────────────────────────────────────────
+
+function ConfidenceBar({ value, label }: { value: number; label?: string }) {
+  const pct = Math.round(value * 100);
+  const color = pct >= 90 ? "bg-emerald-500" : pct >= 75 ? "bg-amber-500" : "bg-red-500";
+  return (
+    <div className="flex items-center gap-2">
+      {label && <span className="text-[10px] text-zinc-400 w-10 shrink-0">{label}</span>}
+      <div className="flex-1 h-1.5 rounded-full bg-zinc-100 dark:bg-white/6 overflow-hidden">
+        <div className={`h-full rounded-full ${color}`} style={{ width: `${pct}%` }} />
+      </div>
+      <span className="text-[10px] font-medium text-zinc-500 w-8 text-right">{pct}%</span>
+    </div>
+  );
+}
+
+function ToothCard({ tooth }: { tooth: BLToothData }) {
+  const kpNames = ["CEJ_left", "CEJ_right", "BL_left", "BL_right"] as const;
+
+  return (
+    <div className="rounded-xl border border-zinc-100 bg-white p-4 dark:border-white/6 dark:bg-white/2">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-base font-bold text-zinc-900 dark:text-white">
+          Tooth #{tooth.tooth_id}
+        </span>
+        <span className="rounded-full bg-indigo-50 px-2.5 py-0.5 text-[10px] font-semibold text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400">
+          Class {tooth.class_id}
+        </span>
+      </div>
+
+      {/* Detection confidence */}
+      <ConfidenceBar value={tooth.confidence} label="Det." />
+
+      {/* Bounding box */}
+      <div className="mt-3">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">Bounding Box</p>
+        <div className="grid grid-cols-4 gap-1.5 text-[11px]">
+          {(["x1", "y1", "x2", "y2"] as const).map((k) => (
+            <div key={k} className="rounded-md bg-zinc-50 px-2 py-1.5 text-center dark:bg-white/4">
+              <span className="text-zinc-400">{k}: </span>
+              <span className="font-medium text-zinc-700 dark:text-zinc-200">{tooth.bounding_box[k]}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Keypoints */}
+      <div className="mt-3">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 mb-1.5">Keypoints</p>
+        <div className="flex flex-col gap-2">
+          {kpNames.map((kp) => {
+            const point = tooth.keypoints[kp];
+            return (
+              <div key={kp}>
+                <div className="flex items-center justify-between text-[11px] text-zinc-600 dark:text-zinc-300 mb-0.5">
+                  <span className="font-medium">{kp.replace(/_/g, " ")}</span>
+                  <span className="text-zinc-400">({point.x}, {point.y})</span>
+                </div>
+                <ConfidenceBar value={point.confidence} />
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* CEJ-to-BL measurements */}
+      <div className="mt-3 rounded-lg bg-teal-50 p-3 dark:bg-teal-900/20 border border-teal-100 dark:border-teal-800/30">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-teal-600 dark:text-teal-400 mb-1.5">
+          CEJ to Bone Level
+        </p>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <span className="text-[10px] text-teal-500 dark:text-teal-400/70">Left</span>
+            <p className="text-lg font-bold text-teal-700 dark:text-teal-300">
+              {tooth.measurements_mm.left.CEJ_to_BL} <span className="text-xs font-normal">mm</span>
+            </p>
+          </div>
+          <div>
+            <span className="text-[10px] text-teal-500 dark:text-teal-400/70">Right</span>
+            <p className="text-lg font-bold text-teal-700 dark:text-teal-300">
+              {tooth.measurements_mm.right.CEJ_to_BL} <span className="text-xs font-normal">mm</span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TeethDataViewer({ data }: { data: BoneLevelData }) {
+  return (
+    <div className="flex flex-col gap-6">
+      {/* DICOM source header */}
+      <div className="rounded-2xl border border-indigo-100 bg-linear-to-br from-indigo-50/40 to-white p-5 dark:border-indigo-800/20 dark:from-indigo-950/10 dark:to-white/1">
+        <div className="flex items-center gap-2.5 mb-3">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-400">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+              <rect x="2" y="2" width="12" height="12" rx="2" stroke="currentColor" strokeWidth="1.5" />
+              <path d="M5 8h6M8 5v6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+          </span>
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">DICOM Source</h3>
+        </div>
+        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+          <InfoCard label="Input File" value={data.input_dicom} />
+          <InfoCard label="Pixel Spacing (row)" value={`${data.pixel_spacing_mm.row} mm`} />
+          <InfoCard label="Pixel Spacing (col)" value={`${data.pixel_spacing_mm.col} mm`} />
+        </div>
+      </div>
+
+      {/* Teeth count */}
+      <div className="flex items-center gap-2.5">
+        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-teal-50 text-teal-500 dark:bg-teal-900/30 dark:text-teal-400">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+            <path d="M5 2c-1.5 0-2.5 1-2.5 3 0 2 .5 4 1 6s1 3 2.5 3c1 0 1-1.5 2-1.5s1 1.5 2 1.5c1.5 0 2-1 2.5-3s1-4 1-6c0-2-1-3-2.5-3s-2 1-3 1-1.5-1-3-1z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
+          </svg>
+        </span>
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+          Detected Teeth
+        </h3>
+        <span className="rounded-full bg-teal-50 px-2 py-0.5 text-[10px] font-semibold text-teal-600 dark:bg-teal-900/30 dark:text-teal-400">
+          {data.teeth.length}
+        </span>
+      </div>
+
+      {/* Tooth cards */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {data.teeth.map((tooth) => (
+          <ToothCard key={tooth.tooth_id} tooth={tooth} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─── Modal ───────────────────────────────────────────────────────────────────
 
-type TabId = "generated" | "final" | "comparison";
+type TabId = "generated" | "final" | "teeth" | "comparison";
 
 interface JsonOutputModalProps {
   open: boolean;
@@ -597,7 +841,7 @@ interface JsonOutputModalProps {
 }
 
 export function JsonOutputModal({ open, onClose, generatedJson, finalJson }: JsonOutputModalProps) {
-  const [activeTab, setActiveTab] = useState<TabId>("generated");
+  const [activeTab, setActiveTab] = useState<TabId>("final");
   const [copied, setCopied] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -623,7 +867,12 @@ export function JsonOutputModal({ open, onClose, generatedJson, finalJson }: Jso
 
   if (!open) return null;
 
-  const currentData = activeTab === "generated" ? generatedJson : finalJson;
+  const blData = finalJson ? (finalJson as Record<string, unknown>).boneLevelAnalysis as BoneLevelData | undefined : undefined;
+
+  const currentData =
+    activeTab === "generated" ? generatedJson :
+    activeTab === "teeth" ? (blData ?? null) :
+    finalJson;
 
   const handleCopy = () => {
     if (currentData) {
@@ -638,7 +887,7 @@ export function JsonOutputModal({ open, onClose, generatedJson, finalJson }: Jso
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    const names: Record<TabId, string> = { generated: "generated-output", final: "final-output", comparison: "periodontitis-diagnosis" };
+    const names: Record<TabId, string> = { generated: "generated-output", final: "patient-data", teeth: "ai-teeth-data", comparison: "periodontitis-diagnosis" };
     a.download = `${names[activeTab]}.json`;
     a.click();
     URL.revokeObjectURL(url);
@@ -646,28 +895,28 @@ export function JsonOutputModal({ open, onClose, generatedJson, finalJson }: Jso
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div
         ref={modalRef}
-        className="relative mx-4 flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-2xl dark:border-white/10 dark:bg-zinc-900"
+        className="relative mx-4 flex max-h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-2xl dark:border-white/10 dark:bg-zinc-800"
       >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-zinc-200 px-6 py-4 dark:border-white/10">
           <div className="flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-zinc-900 text-white dark:bg-white dark:text-zinc-900">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 text-white dark:bg-indigo-500">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                 <path d="M4 2h5l4 4v8a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
                 <path d="M9 2v4h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </span>
             <div>
-              <h2 className="text-base font-semibold text-zinc-900 dark:text-white">JSON Output</h2>
+              <h2 className="text-base font-semibold text-zinc-900 dark:text-white">Patient Record</h2>
               <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                Patient intake data
+                Patient intake &amp; AI analysis data
               </p>
             </div>
           </div>
@@ -683,18 +932,18 @@ export function JsonOutputModal({ open, onClose, generatedJson, finalJson }: Jso
 
         {/* Tabs */}
         <div className="flex items-center gap-2 border-b border-zinc-200 px-6 py-2.5 dark:border-white/10">
-          <div className="flex gap-1 rounded-lg bg-zinc-100 p-0.5 dark:bg-white/6">
+          <div className="flex gap-1 rounded-lg bg-zinc-100 p-0.5 dark:bg-white/8">
             {([
-              { id: "generated" as TabId, label: "Generated" },
-              { id: "final" as TabId, label: "Final Record" },
-              { id: "comparison" as TabId, label: "Diagnosis" },
+              { id: "final" as TabId, label: "Patient Data" },
+              { id: "teeth" as TabId, label: "AI Teeth Data" },
+              { id: "comparison" as TabId, label: "Generalized Diagnosis" },
             ]).map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`relative rounded-md px-3.5 py-1.5 text-xs font-medium transition-all ${
                   activeTab === tab.id
-                    ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-white"
+                    ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-600 dark:text-white"
                     : "text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
                 }`}
               >
@@ -706,19 +955,6 @@ export function JsonOutputModal({ open, onClose, generatedJson, finalJson }: Jso
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto px-6 py-5">
-          {activeTab === "generated" && generatedJson && <CodeViewer data={generatedJson} />}
-          {activeTab === "generated" && !generatedJson && (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-zinc-100 text-zinc-400 dark:bg-white/6">
-                <svg width="20" height="20" viewBox="0 0 16 16" fill="none">
-                  <path d="M4 2h5l4 4v8a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-                  <path d="M9 2v4h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </div>
-              <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">No generated JSON yet</p>
-              <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">Fill in the form and click generate</p>
-            </div>
-          )}
           {activeTab === "final" && finalJson && <FinalJsonViewer data={finalJson} />}
           {activeTab === "final" && !finalJson && (
             <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -728,8 +964,20 @@ export function JsonOutputModal({ open, onClose, generatedJson, finalJson }: Jso
                   <path d="M8 5v3.5l2 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                 </svg>
               </div>
-              <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">No final data available</p>
-              <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">Generate JSON first to see merged data</p>
+              <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">No patient data available</p>
+              <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">Submit the form to see patient data</p>
+            </div>
+          )}
+          {activeTab === "teeth" && blData && <TeethDataViewer data={blData} />}
+          {activeTab === "teeth" && !blData && (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-zinc-100 text-zinc-400 dark:bg-white/6">
+                <svg width="20" height="20" viewBox="0 0 16 16" fill="none">
+                  <path d="M5 2c-1.5 0-2.5 1-2.5 3 0 2 .5 4 1 6s1 3 2.5 3c1 0 1-1.5 2-1.5s1 1.5 2 1.5c1.5 0 2-1 2.5-3s1-4 1-6c0-2-1-3-2.5-3s-2 1-3 1-1.5-1-3-1z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" />
+                </svg>
+              </div>
+              <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">No AI teeth data available</p>
+              <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">Submit the form to load bone level analysis</p>
             </div>
           )}
           {activeTab === "comparison" && finalJson && <DiagnosisViewer data={finalJson} />}
@@ -741,7 +989,7 @@ export function JsonOutputModal({ open, onClose, generatedJson, finalJson }: Jso
                 </svg>
               </div>
               <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">No diagnosis data</p>
-              <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">Generate final JSON to run periodontitis comparison</p>
+              <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">Submit the form to run periodontitis comparison</p>
             </div>
           )}
         </div>
@@ -783,7 +1031,7 @@ export function JsonOutputModal({ open, onClose, generatedJson, finalJson }: Jso
             </button>
             <button
               onClick={onClose}
-              className="inline-flex h-8 items-center rounded-lg bg-zinc-900 px-4 text-xs font-medium text-white transition-colors hover:bg-zinc-800 dark:bg-white dark:text-black dark:hover:bg-zinc-100"
+              className="inline-flex h-8 items-center rounded-lg bg-indigo-600 px-4 text-xs font-medium text-white transition-colors hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600"
             >
               Close
             </button>

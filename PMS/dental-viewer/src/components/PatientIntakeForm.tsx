@@ -33,6 +33,7 @@ interface FormData {
   personalInfo: {
     fullName: string;
     dateOfBirth: string;
+    age: number | null;
     patientEmail: string;
     insurance: string;
     bloodType: string;
@@ -50,11 +51,39 @@ interface FormData {
   };
 }
 
+function isoToDisplay(iso: string): string {
+  if (!iso) return "";
+  const [y, m, d] = iso.split("-");
+  if (!y || !m || !d) return iso;
+  return `${d}/${m}/${y}`;
+}
+
+function displayToIso(display: string): string {
+  if (!display) return "";
+  const [d, m, y] = display.split("/");
+  if (!d || !m || !y) return "";
+  return `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
+}
+
+function calculateAge(dateOfBirth: string): number | null {
+  if (!dateOfBirth) return null;
+  const today = new Date();
+  const birth = new Date(dateOfBirth);
+  if (isNaN(birth.getTime())) return null;
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+  return age;
+}
+
 export function PatientIntakeForm() {
   const [formData, setFormData] = useState<FormData>({
     personalInfo: {
       fullName: "",
       dateOfBirth: "",
+      age: null,
       patientEmail: "",
       insurance: "",
       bloodType: "",
@@ -89,6 +118,7 @@ export function PatientIntakeForm() {
         personalInfo: {
           fullName: "Arben Krasniqi",
           dateOfBirth: "1979-04-12",
+          age: calculateAge("1979-04-12"),
           patientEmail: "arben.krasniqi@example.com",
           insurance: "Sigal Uniqa (Private)",
           bloodType: "A+",
@@ -122,6 +152,7 @@ export function PatientIntakeForm() {
         personalInfo: {
           fullName: "Fjolla Gashi",
           dateOfBirth: "1995-08-23",
+          age: calculateAge("1995-08-23"),
           patientEmail: "fjolla.gashi@example.com",
           insurance: "KESCO Health (Public)",
           bloodType: "B+",
@@ -154,6 +185,7 @@ export function PatientIntakeForm() {
         personalInfo: {
           fullName: "Luan Bytyqi",
           dateOfBirth: "1988-01-30",
+          age: calculateAge("1988-01-30"),
           patientEmail: "luan.bytyqi@example.com",
           insurance: "Illyria Insurance (Private)",
           bloodType: "O+",
@@ -181,6 +213,7 @@ export function PatientIntakeForm() {
         personalInfo: {
           fullName: "Drita Morina",
           dateOfBirth: "1970-11-05",
+          age: calculateAge("1970-11-05"),
           patientEmail: "drita.morina@example.com",
           insurance: "Sigal Uniqa (Private)",
           bloodType: "AB-",
@@ -217,6 +250,7 @@ export function PatientIntakeForm() {
         personalInfo: {
           fullName: "Besnik Haliti",
           dateOfBirth: "1962-06-18",
+          age: calculateAge("1962-06-18"),
           patientEmail: "besnik.haliti@example.com",
           insurance: "None (Self-pay)",
           bloodType: "A-",
@@ -251,6 +285,7 @@ export function PatientIntakeForm() {
         personalInfo: {
           fullName: "Valon Rexhepi",
           dateOfBirth: "1998-03-14",
+          age: calculateAge("1998-03-14"),
           patientEmail: "valon.rexhepi@example.com",
           insurance: "Dukagjini Insurance (Private)",
           bloodType: "O+",
@@ -280,6 +315,7 @@ export function PatientIntakeForm() {
         personalInfo: {
           fullName: "Shkurte Berisha",
           dateOfBirth: "1982-12-01",
+          age: calculateAge("1982-12-01"),
           patientEmail: "shkurte.berisha@example.com",
           insurance: "KESCO Health (Public)",
           bloodType: "B-",
@@ -314,6 +350,7 @@ export function PatientIntakeForm() {
         personalInfo: {
           fullName: "Agron Demolli",
           dateOfBirth: "1965-07-22",
+          age: calculateAge("1965-07-22"),
           patientEmail: "agron.demolli@example.com",
           insurance: "None (Self-pay)",
           bloodType: "A+",
@@ -353,6 +390,7 @@ export function PatientIntakeForm() {
         personalInfo: {
           fullName: "Zana Kelmendi",
           dateOfBirth: "1975-09-08",
+          age: calculateAge("1975-09-08"),
           patientEmail: "zana.kelmendi@example.com",
           insurance: "Sigal Uniqa (Private)",
           bloodType: "AB+",
@@ -491,15 +529,15 @@ export function PatientIntakeForm() {
     setGeneratedJson(output);
 
     try {
-      // 1. Fetch nanok mock data
-      const nanokResponse = await fetch("/api/final-data");
-      const nanokData = nanokResponse.ok ? await nanokResponse.json() : null;
+      // 1. Fetch BL (bone level) mock data
+      const blResponse = await fetch("/api/final-data");
+      const blData = blResponse.ok ? await blResponse.json() : null;
 
-      // 2. Run periodontitis comparison
+      // 2. Run periodontitis comparison using BL data
       const compareResponse = await fetch("/api/compare-periodontitis", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ patientIntake: output, nanokData }),
+        body: JSON.stringify({ patientIntake: output, blData }),
       });
       const comparisonResult = compareResponse.ok ? await compareResponse.json() : null;
 
@@ -507,8 +545,8 @@ export function PatientIntakeForm() {
       const merged: Record<string, unknown> = {
         patientIntake: output,
       };
-      if (nanokData) {
-        merged.nanok = nanokData.nanok ?? nanokData;
+      if (blData) {
+        merged.boneLevelAnalysis = blData;
       }
       if (comparisonResult?.result) {
         merged.result = comparisonResult.result;
@@ -572,15 +610,34 @@ export function PatientIntakeForm() {
                 Date of Birth *
               </label>
               <input
-                type="date"
-                value={formData.personalInfo.dateOfBirth}
-                onChange={(e) =>
+                type="text"
+                value={isoToDisplay(formData.personalInfo.dateOfBirth)}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  const iso = displayToIso(val);
                   setFormData({
                     ...formData,
-                    personalInfo: { ...formData.personalInfo, dateOfBirth: e.target.value },
-                  })
-                }
+                    personalInfo: {
+                      ...formData.personalInfo,
+                      dateOfBirth: iso || val,
+                      age: iso ? calculateAge(iso) : null,
+                    },
+                  });
+                }}
                 className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-white/10 dark:bg-black"
+                placeholder="dd/mm/yyyy"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                Age
+              </label>
+              <input
+                type="text"
+                readOnly
+                value={formData.personalInfo.age !== null ? `${formData.personalInfo.age} years` : ""}
+                className="w-full rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-500 dark:border-white/10 dark:bg-zinc-900 dark:text-zinc-400"
+                placeholder="Auto-calculated"
               />
             </div>
             <div>

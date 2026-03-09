@@ -63,6 +63,119 @@ export interface NanokPeriodontitis {
   };
 }
 
+// ─── BL (Bone Level) data types from mock_BL.JSON ────────────────────────────
+
+export interface BLKeypoint {
+  x: number;
+  y: number;
+  confidence: number;
+}
+
+export interface BLTooth {
+  tooth_id: number;
+  class_id: number;
+  confidence: number;
+  bounding_box: { x1: number; y1: number; x2: number; y2: number };
+  keypoints: {
+    CEJ_left: BLKeypoint;
+    CEJ_right: BLKeypoint;
+    BL_left: BLKeypoint;
+    BL_right: BLKeypoint;
+  };
+  measurements_mm: {
+    left: { CEJ_to_BL: number };
+    right: { CEJ_to_BL: number };
+  };
+}
+
+export interface BLData {
+  input_dicom: string;
+  pixel_spacing_mm: { row: number; col: number };
+  teeth: BLTooth[];
+}
+
+/** Normal CEJ-to-BL distance in mm (healthy periodontium). */
+const NORMAL_CEJ_TO_BL_MM = 2.0;
+
+/**
+ * Derives NanokPeriodontitis-compatible clinical data from BL (bone level)
+ * measurements. CEJ-to-BL distances above the normal ~2 mm threshold
+ * indicate radiographic bone loss.
+ */
+export function derivePerioFromBL(bl: BLData): NanokPeriodontitis {
+  const teeth = bl.teeth ?? [];
+  if (teeth.length === 0) {
+    return { detected: false };
+  }
+
+  // Collect all CEJ-to-BL measurements
+  const allMeasurements: number[] = [];
+  for (const t of teeth) {
+    allMeasurements.push(t.measurements_mm.left.CEJ_to_BL);
+    allMeasurements.push(t.measurements_mm.right.CEJ_to_BL);
+  }
+
+  // Bone loss per site = CEJ_to_BL - normal
+  const boneLossValues = allMeasurements.map((m) => Math.max(0, m - NORMAL_CEJ_TO_BL_MM));
+  const maxBoneLoss = Math.max(...boneLossValues);
+  const meanBoneLoss = boneLossValues.reduce((a, b) => a + b, 0) / boneLossValues.length;
+  const maxCEJtoBL = Math.max(...allMeasurements);
+  const meanCEJtoBL = allMeasurements.reduce((a, b) => a + b, 0) / allMeasurements.length;
+
+  // Estimate bone loss percentage (assuming average root length ~13 mm)
+  const AVG_ROOT_LENGTH_MM = 13;
+  const boneLossPct = Math.round((maxBoneLoss / AVG_ROOT_LENGTH_MM) * 100);
+
+  // Determine which teeth have bone loss (any site > normal threshold)
+  const teethWithBoneLoss = teeth.filter((t) => {
+    const left = t.measurements_mm.left.CEJ_to_BL - NORMAL_CEJ_TO_BL_MM;
+    const right = t.measurements_mm.right.CEJ_to_BL - NORMAL_CEJ_TO_BL_MM;
+    return left > 0 || right > 0;
+  });
+
+  const teethInvolvedPct = (teethWithBoneLoss.length / teeth.length) * 100;
+
+  // Determine bone loss pattern
+  const hasVertical = boneLossValues.some((v, i) => {
+    // Check if left and right sides of same tooth differ significantly
+    if (i % 2 === 0 && i + 1 < boneLossValues.length) {
+      return Math.abs(boneLossValues[i] - boneLossValues[i + 1]) > 1.5;
+    }
+    return false;
+  });
+  const pattern = hasVertical ? "mixed_horizontal_and_vertical" : "horizontal";
+
+  // Determine extent description
+  let extent = "coronal_third";
+  if (maxBoneLoss > 5) extent = "extending_to_apical_third";
+  else if (maxBoneLoss > 3) extent = "extending_to_middle_third";
+
+  const detected = maxBoneLoss > 1;
+
+  return {
+    detected,
+    patient: {
+      teeth_present: teeth.length,
+      teeth_lost_to_periodontitis: 0, // BL data only covers present teeth
+    },
+    clinical_findings: {
+      clinical_attachment_loss: {
+        max_interdental_cal_mm: Math.round(maxCEJtoBL * 10) / 10,
+        mean_cal_mm: Math.round(meanCEJtoBL * 10) / 10,
+        sites_measured: allMeasurements.length,
+      },
+      radiographic_bone_loss: {
+        pattern,
+        max_vertical_bone_loss_mm: Math.round(maxBoneLoss * 10) / 10,
+        extent,
+        percentage_estimate: boneLossPct,
+      },
+      teeth_involved_count: teethWithBoneLoss.length,
+      teeth_involved_percentage: Math.round(teethInvolvedPct * 10) / 10,
+    },
+  };
+}
+
 export interface DiagnosisResult {
   periodontitis_detected: boolean;
   full_diagnosis: string;

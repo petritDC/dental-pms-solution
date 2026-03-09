@@ -1,24 +1,25 @@
 import { readFile, writeFile, mkdir } from "fs/promises";
 import { join } from "path";
 import { NextResponse } from "next/server";
-import { compareAgainstReference, type PatientIntake, type NanokPeriodontitis } from "@/lib/compare-periodontitis";
+import { compareAgainstReference, derivePerioFromBL, type PatientIntake, type NanokPeriodontitis, type BLData } from "@/lib/compare-periodontitis";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const intake = (body.patientIntake ?? body) as PatientIntake;
 
-    // Extract nanok periodontitis data from request body, or load from mock file
+    // Extract periodontitis data from BL (bone level) data in request body, or load from mock file
     let nanokPerio: NanokPeriodontitis | null = null;
-    if (body.nanokData?.nanok?.value?.periodontitis) {
-      nanokPerio = body.nanokData.nanok.value.periodontitis;
+    if (body.blData?.teeth) {
+      // Derive periodontitis clinical data from BL measurements
+      nanokPerio = derivePerioFromBL(body.blData as BLData);
     } else {
-      // Fallback: load from nanok-mock.json
+      // Fallback: load from mock_BL.JSON
       try {
-        const mockPath = join(process.cwd(), "..", "data", "json", "nanok-mock.json");
+        const mockPath = join(process.cwd(), "..", "data", "json", "mock_BL.JSON");
         const mockContents = await readFile(mockPath, "utf-8");
-        const mockData = JSON.parse(mockContents);
-        nanokPerio = mockData?.nanok?.value?.periodontitis ?? null;
+        const blData = JSON.parse(mockContents) as BLData;
+        nanokPerio = derivePerioFromBL(blData);
       } catch {
         // No mock data available
       }

@@ -10,13 +10,13 @@ export async function GET() {
       "..",
       "data",
       "json",
-      "nanok-mock.json",
+      "mock_BL.JSON",
     );
     const fileContents = await readFile(filePath, "utf-8");
     const data = JSON.parse(fileContents);
     return NextResponse.json(data);
   } catch (error) {
-    console.error("Error reading final-data.json:", error);
+    console.error("Error reading mock_BL.JSON:", error);
     return NextResponse.json(
       { error: "Failed to load final data" },
       { status: 500 },
