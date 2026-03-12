@@ -22,6 +22,11 @@ interface EmergencyContactItem {
   relationship: string;
 }
 
+interface XRayAvailability {
+  hasXRayToUpload: boolean;
+  status: "available" | "pending";
+}
+
 interface RiskFactors {
   smokingStatus: "non_smoker" | "former_smoker" | "current_smoker";
   cigarettesPerDay: number;
@@ -45,11 +50,16 @@ interface FormData {
   riskFactors: RiskFactors;
   currentMedications: MedicationItem[];
   emergencyContacts: EmergencyContactItem[];
+  xRayAvailability: XRayAvailability;
+  doctorNotes: string;
   consents: {
     privacyPolicyAccepted: boolean;
     treatmentConsent: boolean;
   };
 }
+
+type PrefillFormData = Omit<FormData, "xRayAvailability" | "doctorNotes"> &
+  Partial<Pick<FormData, "xRayAvailability" | "doctorNotes">>;
 
 function isoToDisplay(iso: string): string {
   if (!iso) return "";
@@ -78,6 +88,21 @@ function calculateAge(dateOfBirth: string): number | null {
   return age;
 }
 
+function buildXRayAvailability(hasXRayToUpload: boolean): XRayAvailability {
+  return {
+    hasXRayToUpload,
+    status: hasXRayToUpload ? "available" : "pending",
+  };
+}
+
+function withFormDefaults(data: PrefillFormData): FormData {
+  return {
+    ...data,
+    xRayAvailability: buildXRayAvailability(data.xRayAvailability?.hasXRayToUpload ?? false),
+    doctorNotes: data.doctorNotes ?? "",
+  };
+}
+
 export function PatientIntakeForm() {
   const [formData, setFormData] = useState<FormData>({
     personalInfo: {
@@ -100,6 +125,8 @@ export function PatientIntakeForm() {
     },
     currentMedications: [],
     emergencyContacts: [],
+    xRayAvailability: buildXRayAvailability(false),
+    doctorNotes: "",
     consents: {
       privacyPolicyAccepted: false,
       treatmentConsent: false,
@@ -111,7 +138,7 @@ export function PatientIntakeForm() {
   const [finalJson, setFinalJson] = useState<object | null>(null);
   const [showModal, setShowModal] = useState(false);
 
-  const prefillDatasets: { label: string; data: FormData }[] = [
+  const prefillDatasets: { label: string; data: PrefillFormData }[] = [
     {
       label: "Arben Krasniqi — Diabetic, Hypertension",
       data: {
@@ -423,7 +450,7 @@ export function PatientIntakeForm() {
   ];
 
   const prefillForm = (index: number) => {
-    setFormData(prefillDatasets[index].data);
+    setFormData(withFormDefaults(prefillDatasets[index].data));
   };
 
   const addAllergy = () => {
@@ -515,7 +542,7 @@ export function PatientIntakeForm() {
   const generateJson = async () => {
     const output = {
       submittedAt: new Date().toISOString(),
-      formVersion: "patient_intake_v2",
+      formVersion: "patient_intake_v3",
       personalInfo: formData.personalInfo,
       allergies: formData.allergies,
       medicalHistory: formData.medicalHistory.filter(
@@ -524,6 +551,8 @@ export function PatientIntakeForm() {
       riskFactors: formData.riskFactors,
       currentMedications: formData.currentMedications.filter((item) => item.name),
       emergencyContacts: formData.emergencyContacts.filter((item) => item.name && item.phone),
+      xRayAvailability: buildXRayAvailability(formData.xRayAvailability.hasXRayToUpload),
+      doctorNotes: formData.doctorNotes.trim(),
       consents: formData.consents,
     };
     setGeneratedJson(output);
@@ -569,6 +598,11 @@ export function PatientIntakeForm() {
             <p className="text-sm text-zinc-600 dark:text-zinc-400">
               Complete the form to generate patient intake JSON data.
             </p>
+            {!formData.xRayAvailability.hasXRayToUpload && (
+              <div className="mt-3 inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 dark:border-amber-800/40 dark:bg-amber-950/30 dark:text-amber-300">
+                X-Ray Pending: patient has not uploaded or provided one yet.
+              </div>
+            )}
           </div>
           <select
             onChange={(e) => {
@@ -584,6 +618,44 @@ export function PatientIntakeForm() {
             ))}
           </select>
         </div>
+
+        {/* X-Ray Availability */}
+        <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/5">
+          <h2 className="mb-4 text-base font-semibold">X-Ray Availability</h2>
+          <label className="flex items-start gap-3">
+            <input
+              type="checkbox"
+              checked={formData.xRayAvailability.hasXRayToUpload}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  xRayAvailability: buildXRayAvailability(e.target.checked),
+                })
+              }
+              className="mt-0.5 h-4 w-4 rounded border-zinc-300 text-zinc-900 dark:border-white/20"
+            />
+            <div>
+              <span className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                X-Ray availability
+              </span>
+              <span className="mt-1 block text-xs text-zinc-500 dark:text-zinc-400">
+                Check this if the patient already has an X-Ray ready to upload or provide.
+              </span>
+            </div>
+          </label>
+          <div className="mt-4">
+            <span
+              className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
+                formData.xRayAvailability.status === "available"
+                  ? "border border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800/40 dark:bg-emerald-950/30 dark:text-emerald-300"
+                  : "border border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800/40 dark:bg-amber-950/30 dark:text-amber-300"
+              }`}
+            >
+              Status: {formData.xRayAvailability.status}
+            </span>
+          </div>
+        </div>
+
         {/* Personal Information */}
         <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/5">
           <h2 className="mb-4 text-base font-semibold">Personal Information</h2>
@@ -1085,6 +1157,23 @@ export function PatientIntakeForm() {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Doctor Notes */}
+        <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/5">
+          <h2 className="mb-4 text-base font-semibold">Doctor Notes</h2>
+          <textarea
+            value={formData.doctorNotes}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                doctorNotes: e.target.value,
+              })
+            }
+            className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm dark:border-white/10 dark:bg-black"
+            placeholder="Add notes for the doctor reviewing this patient."
+            rows={4}
+          />
         </div>
 
         {/* Consents */}

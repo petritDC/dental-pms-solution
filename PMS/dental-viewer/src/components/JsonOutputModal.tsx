@@ -25,6 +25,11 @@ interface PatientIntake {
   };
   currentMedications?: { name: string; dosage?: string; frequency?: string; prescribedBy?: string }[];
   emergencyContacts?: { name: string; phone: string; relationship?: string }[];
+  xRayAvailability?: {
+    hasXRayToUpload?: boolean;
+    status?: "available" | "pending";
+  };
+  doctorNotes?: string;
   consents?: {
     privacyPolicyAccepted?: boolean;
     treatmentConsent?: boolean;
@@ -60,83 +65,6 @@ interface BoneLevelData {
   input_dicom: string;
   pixel_spacing_mm: { row: number; col: number };
   teeth: BLToothData[];
-}
-
-// ─── Syntax-highlighted code viewer (kept for potential future use) ──────────
-
-function colorizeJsonLine(line: string): React.ReactNode {
-  const keyValueMatch = line.match(/^(\s*)"([^"]+)"(:\s*)(.*)/);
-  if (keyValueMatch) {
-    const [, indent, key, colon, rest] = keyValueMatch;
-    let valueNode: React.ReactNode = <span className="text-zinc-400">{rest}</span>;
-    if (rest.startsWith('"')) {
-      valueNode = <span className="text-emerald-400">{rest}</span>;
-    } else if (rest === "true," || rest === "true" || rest === "false," || rest === "false") {
-      valueNode = <span className="text-amber-400">{rest}</span>;
-    } else if (rest === "null," || rest === "null") {
-      valueNode = <span className="text-red-400">{rest}</span>;
-    } else if (/^-?\d/.test(rest)) {
-      valueNode = <span className="text-blue-400">{rest}</span>;
-    }
-    return (
-      <>
-        {indent}
-        <span className="text-violet-300">&quot;{key}&quot;</span>
-        <span className="text-zinc-500">{colon}</span>
-        {valueNode}
-      </>
-    );
-  }
-
-  const stringMatch = line.match(/^(\s*)"(.*)"(,?)$/);
-  if (stringMatch) {
-    const [, indent, val, comma] = stringMatch;
-    return (
-      <>
-        {indent}
-        <span className="text-emerald-400">&quot;{val}&quot;</span>
-        <span className="text-zinc-500">{comma}</span>
-      </>
-    );
-  }
-
-  return <span className="text-zinc-500">{line}</span>;
-}
-
-function CodeViewer({ data }: { data: object }) {
-  const lines = JSON.stringify(data, null, 2).split("\n");
-
-  return (
-    <div className="overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50 dark:border-white/6 dark:bg-zinc-900">
-      <div className="flex items-center gap-2 border-b border-zinc-200 px-4 py-2.5 dark:border-white/6">
-        <div className="flex gap-1.5">
-          <div className="h-2.5 w-2.5 rounded-full bg-zinc-300 dark:bg-zinc-700" />
-          <div className="h-2.5 w-2.5 rounded-full bg-zinc-300 dark:bg-zinc-700" />
-          <div className="h-2.5 w-2.5 rounded-full bg-zinc-300 dark:bg-zinc-700" />
-        </div>
-        <span className="ml-1 text-[10px] font-medium uppercase tracking-wider text-zinc-500">
-          json
-        </span>
-        <span className="ml-auto text-[10px] text-zinc-500">
-          {lines.length} lines
-        </span>
-      </div>
-      <div className="flex overflow-x-auto">
-        <div className="shrink-0 select-none border-r border-zinc-200 py-4 text-right dark:border-white/4">
-          {lines.map((_, i) => (
-            <div key={i} className="px-3 font-mono text-[11px] leading-5 text-zinc-400 dark:text-zinc-600">
-              {i + 1}
-            </div>
-          ))}
-        </div>
-        <pre className="flex-1 py-4 pl-4 pr-6 font-mono text-[11px] leading-5 text-zinc-700 dark:text-zinc-300">
-          {lines.map((line, i) => (
-            <div key={i}>{colorizeJsonLine(line)}</div>
-          ))}
-        </pre>
-      </div>
-    </div>
-  );
 }
 
 // ─── Patient record viewer (Patient Data tab) ───────────────────────────────
@@ -223,6 +151,7 @@ function FinalJsonViewer({ data }: { data: object }) {
   const d = data as Record<string, unknown>;
   const intake = (d.patientIntake ?? {}) as PatientIntake;
   const info = intake.personalInfo ?? {};
+  const xRayStatus = intake.xRayAvailability?.status ?? (intake.xRayAvailability?.hasXRayToUpload ? "available" : undefined);
 
   const submittedAt = intake.submittedAt
     ? new Date(intake.submittedAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })
@@ -257,6 +186,17 @@ function FinalJsonViewer({ data }: { data: object }) {
                 {intake.formVersion}
               </span>
             )}
+            {xRayStatus && (
+              <span
+                className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
+                  xRayStatus === "available"
+                    ? "border border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800/40 dark:bg-emerald-950/30 dark:text-emerald-300"
+                    : "border border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800/40 dark:bg-amber-950/30 dark:text-amber-300"
+                }`}
+              >
+                X-Ray {xRayStatus}
+              </span>
+            )}
           </div>
           <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">{info.patientEmail || "No email"}</p>
         </div>
@@ -277,6 +217,7 @@ function FinalJsonViewer({ data }: { data: object }) {
           <InfoCard label="Insurance" value={info.insurance} />
           <InfoCard label="National ID" value={info.patientNationalId} />
           <InfoCard label="Medical Record No." value={info.medicalRecordNumber} />
+          <InfoCard label="X-Ray Status" value={xRayStatus ? xRayStatus[0].toUpperCase() + xRayStatus.slice(1) : undefined} />
         </div>
       </Section>
 
@@ -389,6 +330,19 @@ function FinalJsonViewer({ data }: { data: object }) {
                 )}
               </div>
             ))}
+          </div>
+        </Section>
+      )}
+
+      {(intake.doctorNotes || xRayStatus) && (
+        <Section
+          icon={<svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M3 2.75A1.75 1.75 0 014.75 1h6.5A1.75 1.75 0 0113 2.75v10.5A1.75 1.75 0 0111.25 15h-6.5A1.75 1.75 0 013 13.25V2.75z" stroke="currentColor" strokeWidth="1.5" /><path d="M5.5 5.5h5M5.5 8h5M5.5 10.5h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>}
+          title="Doctor Notes"
+        >
+          <div className="rounded-xl border border-zinc-100 bg-white px-4 py-3 dark:border-white/6 dark:bg-white/2">
+            <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">
+              {intake.doctorNotes || "No notes added."}
+            </p>
           </div>
         </Section>
       )}

@@ -15,6 +15,11 @@ export interface PatientIntake {
   };
   currentMedications?: { name: string; dosage?: string; frequency?: string; prescribedBy?: string }[];
   allergies?: string[];
+  xRayAvailability?: {
+    hasXRayToUpload?: boolean;
+    status?: "available" | "pending";
+  };
+  doctorNotes?: string;
 }
 
 /** Nanok periodontitis clinical data (from AI imaging analysis). */
@@ -118,7 +123,6 @@ export function derivePerioFromBL(bl: BLData): NanokPeriodontitis {
   // Bone loss per site = CEJ_to_BL - normal
   const boneLossValues = allMeasurements.map((m) => Math.max(0, m - NORMAL_CEJ_TO_BL_MM));
   const maxBoneLoss = Math.max(...boneLossValues);
-  const meanBoneLoss = boneLossValues.reduce((a, b) => a + b, 0) / boneLossValues.length;
   const maxCEJtoBL = Math.max(...allMeasurements);
   const meanCEJtoBL = allMeasurements.reduce((a, b) => a + b, 0) / allMeasurements.length;
 

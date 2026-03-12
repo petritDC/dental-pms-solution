@@ -1,7 +1,5 @@
-import { UploadClient } from "@/components/UploadClient";
+import { redirect } from "next/navigation";
 
 export default function Home() {
-  return (
-    <UploadClient />
-  );
+  redirect("/intake");
 }

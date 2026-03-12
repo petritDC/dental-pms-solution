@@ -24,10 +24,9 @@ function TabLink(props: { href: string; label: string }) {
 export function NavTabs() {
   return (
     <nav className="flex items-center gap-2">
-      <TabLink href="/" label="Upload" />
-      <TabLink href="/gallery" label="Gallery" />
       <TabLink href="/intake" label="Patient Intake" />
+      <TabLink href="/upload" label="Upload" />
+      {/* <TabLink href="/gallery" label="Gallery" /> */}
     </nav>
   );
 }
-
